@@ -1,0 +1,42 @@
+<resources>
+    <string name="app_name">Clipbo</string>
+
+    <!-- Widget -->
+    <string name="widget_description">Clipboard geçmişinizi ana ekranınızda görüntüleyin ve hızla erişin</string>
+
+    <!-- Clipboard Servisi -->
+    <string name="clipboard_service_title">Clipbo Aktif</string>
+    <string name="clipboard_service_description">Clipboard geçmişi kaydediliyor...</string>
+    <string name="clipboard_service_channel_name">Clipboard Servisi</string>
+    <string name="clipboard_service_channel_description">Clipboard geçmişi yakalama servisi</string>
+
+    <!-- Genel -->
+    <string name="copy">Kopyala</string>
+    <string name="delete">Sil</string>
+    <string name="pin">Sabitle</string>
+    <string name="unpin">Sabitlemeyi Kaldır</string>
+    <string name="secure">Güvenli</string>
+    <string name="search">Ara...</string>
+    <string name="history">Geçmiş</string>
+    <string name="secure_clipboard">Güvenli Pano</string>
+    <string name="settings">Ayarlar</string>
+
+    <!-- Mesajlar -->
+    <string name="copied_to_clipboard">Panoya kopyalandı</string>
+    <string name="item_deleted">Öğe silindi</string>
+    <string name="item_pinned">Öğe sabitlendi</string>
+    <string name="item_unpinned">Sabitleme kaldırıldı</string>
+    <string name="clipboard_empty">Henüz kopyalanan öğe yok</string>
+    <string name="permission_required">İzin gerekli</string>
+    <string name="notification_permission_message">Bildirim izni gerekli</string>
+
+    <!-- Türler -->
+    <string name="type_text">Metin</string>
+    <string name="type_url">Link</string>
+    <string name="type_email">E-posta</string>
+    <string name="type_phone">Telefon</string>
+    <string name="type_password">Parola</string>
+    <string name="type_iban">IBAN</string>
+    <string name="type_address">Adres</string>
+    <string name="type_pin">PIN</string>
+</resources>
