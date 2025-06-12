@@ -4,11 +4,27 @@
     <!-- Widget -->
     <string name="widget_description">Clipboard geçmişinizi ana ekranınızda görüntüleyin ve hızla erişin</string>
 
-    <!-- Clipboard Servisi -->
+    <!-- Accessibility Service - MISSING -->
+    <string name="accessibility_service_description">Clipbo clipboard geçmişi yakalamak için erişilebilirlik hizmetine ihtiyaç duyar. Bu hizmet sadece kopyalanan metinleri algılamak için kullanılır, başka hiçbir veriye erişim sağlamaz.</string>
+
+    <!-- Clipboard Service -->
     <string name="clipboard_service_title">Clipbo Aktif</string>
     <string name="clipboard_service_description">Clipboard geçmişi kaydediliyor...</string>
     <string name="clipboard_service_channel_name">Clipboard Servisi</string>
     <string name="clipboard_service_channel_description">Clipboard geçmişi yakalama servisi</string>
+
+    <!-- Notifications - MISSING -->
+    <string name="notification_clipboard_copied">Panoya kopyalandı</string>
+    <string name="notification_service_running">Clipbo servisi çalışıyor</string>
+    <string name="notification_service_stopped">Clipbo servisi durduruldu</string>
+
+    <!-- Permissions - MISSING -->
+    <string name="permission_accessibility_title">Erişilebilirlik İzni</string>
+    <string name="permission_accessibility_description">Clipboard değişikliklerini algılamak için erişilebilirlik servisi gereklidir</string>
+    <string name="permission_notification_title">Bildirim İzni</string>
+    <string name="permission_notification_description">Uygulama durumu hakkında bildirim göstermek için izin gereklidir</string>
+    <string name="permission_overlay_title">Overlay İzni</string>
+    <string name="permission_overlay_description">Floating widget göstermek için overlay izni gereklidir</string>
 
     <!-- Genel -->
     <string name="copy">Kopyala</string>
@@ -20,6 +36,17 @@
     <string name="history">Geçmiş</string>
     <string name="secure_clipboard">Güvenli Pano</string>
     <string name="settings">Ayarlar</string>
+    <string name="cancel">İptal</string>
+    <string name="ok">Tamam</string>
+    <string name="retry">Tekrar Dene</string>
+    <string name="close">Kapat</string>
+
+    <!-- Actions - MISSING -->
+    <string name="action_clear_all">Tümünü Temizle</string>
+    <string name="action_export">Dışa Aktar</string>
+    <string name="action_import">İçe Aktar</string>
+    <string name="action_backup">Yedekle</string>
+    <string name="action_restore">Geri Yükle</string>
 
     <!-- Mesajlar -->
     <string name="copied_to_clipboard">Panoya kopyalandı</string>
@@ -30,6 +57,22 @@
     <string name="permission_required">İzin gerekli</string>
     <string name="notification_permission_message">Bildirim izni gerekli</string>
 
+    <!-- Error Messages - MISSING -->
+    <string name="error_database">Veritabanı hatası</string>
+    <string name="error_network">Ağ bağlantısı hatası</string>
+    <string name="error_permission_denied">İzin reddedildi</string>
+    <string name="error_file_not_found">Dosya bulunamadı</string>
+    <string name="error_backup_failed">Yedekleme başarısız</string>
+    <string name="error_restore_failed">Geri yükleme başarısız</string>
+    <string name="error_biometric_not_available">Biyometrik doğrulama kullanılamıyor</string>
+    <string name="error_accessibility_service">Erişilebilirlik servisi aktif değil</string>
+
+    <!-- Biometric - MISSING -->
+    <string name="biometric_title">Güvenli Pano</string>
+    <string name="biometric_subtitle">Hassas verilerinize erişin</string>
+    <string name="biometric_description">Güvenli clipboard içeriklerini görmek için doğrulayın</string>
+    <string name="biometric_negative_button">İptal</string>
+
     <!-- Türler -->
     <string name="type_text">Metin</string>
     <string name="type_url">Link</string>
@@ -39,4 +82,49 @@
     <string name="type_iban">IBAN</string>
     <string name="type_address">Adres</string>
     <string name="type_pin">PIN</string>
+
+    <!-- Tags - MISSING -->
+    <string name="tags">Etiketler</string>
+    <string name="tag_create">Etiket Oluştur</string>
+    <string name="tag_edit">Etiket Düzenle</string>
+    <string name="tag_delete">Etiket Sil</string>
+    <string name="tag_name">Etiket Adı</string>
+    <string name="tag_color">Renk</string>
+    <string name="tag_usage_count">%d kez kullanıldı</string>
+
+    <!-- Settings - MISSING -->
+    <string name="settings_general">Genel</string>
+    <string name="settings_security">Güvenlik</string>
+    <string name="settings_backup">Yedekleme</string>
+    <string name="settings_about">Hakkında</string>
+    <string name="settings_dark_theme">Koyu Tema</string>
+    <string name="settings_auto_start">Otomatik Başlat</string>
+    <string name="settings_max_items">Maksimum Öğe Sayısı</string>
+    <string name="settings_secure_mode">Güvenli Mod</string>
+    <string name="settings_biometric">Biyometrik Doğrulama</string>
+
+    <!-- Widget - MISSING -->
+    <string name="widget_empty_title">Henüz öğe yok</string>
+    <string name="widget_empty_description">Herhangi bir metni kopyaladığınızda burada görünecek</string>
+    <string name="widget_service_stopped">Clipbo servisi durduruldu</string>
+    <string name="widget_tap_to_open">Uygulamayı açmak için dokunun</string>
+
+    <!-- File Provider - MISSING -->
+    <string name="file_provider_authority">${applicationId}.fileprovider</string>
+
+    <!-- Backup - MISSING -->
+    <string name="backup_export_success">Yedekleme başarıyla dışa aktarıldı</string>
+    <string name="backup_import_success">Yedek başarıyla içe aktarıldı</string>
+    <string name="backup_progress_reading">Veriler okunuyor...</string>
+    <string name="backup_progress_writing">Dosya yazılıyor...</string>
+    <string name="backup_progress_encrypting">Şifreleniyor...</string>
+    <string name="backup_progress_decrypting">Şifre çözülüyor...</string>
+
+    <!-- Time formats - MISSING -->
+    <string name="time_now">Şimdi</string>
+    <string name="time_minutes_ago">%d dakika önce</string>
+    <string name="time_hours_ago">%d saat önce</string>
+    <string name="time_days_ago">%d gün önce</string>
+    <string name="time_weeks_ago">%d hafta önce</string>
+
 </resources>

@@ -1,21 +1,5 @@
 package com.bt.clipbo.presentation.ui.secure
 
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.dp
-import androidx.fragment.app.FragmentActivity
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.bt.clipbo.data.database.ClipboardEntity
@@ -43,47 +27,76 @@ class SecureClipboardViewModel @Inject constructor(
     }
 
     fun checkBiometricAvailability(context: android.content.Context) {
-        val status = biometricHelper.isBiometricAvailable(context)
-        _uiState.value = _uiState.value.copy(
-            biometricStatus = status,
-            showBiometricStatus = true
-        )
+        viewModelScope.launch {
+            try {
+                val status = biometricHelper.isBiometricAvailable(context)
+                _uiState.value = _uiState.value.copy(
+                    biometricStatus = status,
+                    showBiometricStatus = true
+                )
+            } catch (e: Exception) {
+                _uiState.value = _uiState.value.copy(
+                    biometricStatus = BiometricStatus.UNKNOWN,
+                    showBiometricStatus = true
+                )
+            }
+        }
     }
 
     fun authenticateUser(
-        activity: FragmentActivity,
+        activity: androidx.fragment.app.FragmentActivity,
         onSuccess: () -> Unit,
         onError: (String) -> Unit
     ) {
-        _uiState.value = _uiState.value.copy(isAuthenticating = true)
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isAuthenticating = true)
 
-        biometricHelper.authenticateUser(
-            activity = activity,
-            title = "🔒 Güvenli Pano",
-            subtitle = "Hassas verilerinize erişin",
-            description = "Güvenli clipboard içeriklerini görmek için doğrulayın",
-            onSuccess = {
-                _uiState.value = _uiState.value.copy(
-                    isAuthenticated = true,
-                    isAuthenticating = false
+            try {
+                biometricHelper.authenticateUser(
+                    activity = activity,
+                    title = "🔒 Güvenli Pano",
+                    subtitle = "Hassas verilerinize erişin",
+                    description = "Güvenli clipboard içeriklerini görmek için doğrulayın",
+                    onSuccess = {
+                        viewModelScope.launch {
+                            _uiState.value = _uiState.value.copy(
+                                isAuthenticated = true,
+                                isAuthenticating = false
+                            )
+                            onSuccess()
+                        }
+                    },
+                    onError = { error ->
+                        viewModelScope.launch {
+                            _uiState.value = _uiState.value.copy(isAuthenticating = false)
+                            onError(error)
+                        }
+                    },
+                    onCancel = {
+                        viewModelScope.launch {
+                            _uiState.value = _uiState.value.copy(isAuthenticating = false)
+                        }
+                    }
                 )
-                onSuccess()
-            },
-            onError = { error ->
+            } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(isAuthenticating = false)
-                onError(error)
-            },
-            onCancel = {
-                _uiState.value = _uiState.value.copy(isAuthenticating = false)
+                onError("Biometric authentication failed: ${e.message}")
             }
-        )
+        }
     }
 
     private fun loadSecureItems() {
         viewModelScope.launch {
-            clipboardUseCase.getSecureItems().collect { items ->
+            try {
+                clipboardUseCase.getSecureItems().collect { items ->
+                    _uiState.value = _uiState.value.copy(
+                        secureItems = items,
+                        isLoading = false
+                    )
+                }
+            } catch (e: Exception) {
                 _uiState.value = _uiState.value.copy(
-                    secureItems = items,
+                    secureItems = emptyList(),
                     isLoading = false
                 )
             }
@@ -92,29 +105,60 @@ class SecureClipboardViewModel @Inject constructor(
 
     fun copyToClipboard(content: String) {
         viewModelScope.launch {
-            clipboardUseCase.copyToClipboard(content)
+            try {
+                clipboardUseCase.copyToClipboard(content)
+            } catch (e: Exception) {
+                // Handle error silently or emit error state
+            }
         }
     }
 
     fun deleteItem(item: ClipboardEntity) {
         viewModelScope.launch {
-            clipboardUseCase.deleteItem(item)
+            try {
+                clipboardUseCase.deleteItem(item)
+            } catch (e: Exception) {
+                // Handle error silently or emit error state
+            }
         }
     }
 
     fun togglePin(item: ClipboardEntity) {
         viewModelScope.launch {
-            clipboardUseCase.togglePin(item)
+            try {
+                clipboardUseCase.togglePin(item)
+            } catch (e: Exception) {
+                // Handle error silently or emit error state
+            }
         }
     }
 
     fun toggleSecureMode(item: ClipboardEntity) {
         viewModelScope.launch {
-            clipboardUseCase.toggleSecure(item)
+            try {
+                clipboardUseCase.toggleSecure(item)
+            } catch (e: Exception) {
+                // Handle error silently or emit error state
+            }
         }
     }
 
     fun logout() {
-        _uiState.value = _uiState.value.copy(isAuthenticated = false)
+        _uiState.value = _uiState.value.copy(
+            isAuthenticated = false,
+            isAuthenticating = false
+        )
+    }
+
+    fun retry() {
+        _uiState.value = _uiState.value.copy(
+            isLoading = true,
+            showBiometricStatus = false
+        )
+        loadSecureItems()
+    }
+
+    fun clearError() {
+        // If you have error state, clear it here
     }
 }

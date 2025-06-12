@@ -104,67 +104,63 @@ dependencies {
     // Core library desugaring for Java 8+ APIs
     coreLibraryDesugaring("com.android.tools:desugar_jdk_libs:2.0.4")
 
-    // Compose & Navigation
+    // Compose & Navigation - ESSENTIAL
     implementation("androidx.navigation:navigation-compose:2.7.6")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.7.0")
     implementation("androidx.compose.material:material-icons-extended:1.6.1")
     implementation("androidx.compose.animation:animation:1.6.1")
     implementation("androidx.activity:activity-ktx:1.8.2")
 
-    // Room Database (KSP ile)
+    // Room Database (KSP ile) - ESSENTIAL
     implementation("androidx.room:room-runtime:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
     ksp("androidx.room:room-compiler:2.6.1")
 
-    // Hilt Dependency Injection (KSP ile)
+    // Hilt Dependency Injection (KSP ile) - ESSENTIAL
     implementation("com.google.dagger:hilt-android:2.48.1")
     ksp("com.google.dagger:hilt-compiler:2.48.1")
     implementation("androidx.hilt:hilt-navigation-compose:1.1.0")
 
-    // Security & Biometrics
+    // Security & Biometrics - ESSENTIAL
     implementation("androidx.biometric:biometric:1.1.0")
     implementation("androidx.security:security-crypto:1.1.0-alpha06")
 
-    // AdMob
+    // AdMob - KEEP (Revenue)
     implementation("com.google.android.gms:play-services-ads:24.4.0")
 
-    // Glance (Widget)
+    // Glance (Widget) - ESSENTIAL
     implementation("androidx.glance:glance-appwidget:1.1.1")
 
-    // Permissions
+    // Permissions - ESSENTIAL
     implementation("com.google.accompanist:accompanist-permissions:0.32.0")
 
-    // DataStore (Settings için)
+    // DataStore (Settings için) - ESSENTIAL
     implementation("androidx.datastore:datastore-preferences:1.1.7")
 
-    // JSON Serialization
+    // JSON Serialization - ESSENTIAL
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
-    // Coroutines
+    // Coroutines - ESSENTIAL
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
 
-    // WorkManager (Background tasks için)
+    // WorkManager (Background tasks için) - KEEP
     implementation("androidx.work:work-runtime-ktx:2.9.0")
     implementation("androidx.hilt:hilt-work:1.1.0")
     ksp("androidx.hilt:hilt-compiler:1.1.0")
 
-    // File operations
-    implementation("androidx.documentfile:documentfile:1.0.1")
-
-    // Image loading (eğer gelecekte görsel kopyalama eklenirse)
-    implementation("io.coil-kt:coil-compose:2.5.0")
-
-    // Network (Firebase/Analytics için)
-    implementation("com.squareup.okhttp3:okhttp:4.12.0")
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-
-    // Logging
+    // Logging - ESSENTIAL for debugging
     implementation("com.jakewharton.timber:timber:5.0.1")
 
-    // Memory leak detection (debug builds)
+    // Memory leak detection (debug builds) - DEVELOPMENT ONLY
     debugImplementation("com.squareup.leakcanary:leakcanary-android:2.12")
+
+    // REMOVED UNUSED DEPENDENCIES:
+    // implementation("androidx.documentfile:documentfile:1.0.1") - Not used
+    // implementation("io.coil-kt:coil-compose:2.5.0") - Image loading not implemented
+     implementation("com.squareup.okhttp3:okhttp:4.12.0")
+     implementation("com.squareup.retrofit2:retrofit:2.9.0")
+     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
 
     // Testing dependencies
     testImplementation(libs.junit)
