@@ -33,8 +33,20 @@ import com.bt.clipbo.widget.repository.WidgetRepository
 
 @Composable
 fun ClipboWidgetContent() {
-    // Widget repository'den veri al
-    val widgetRepository = WidgetRepository.getInstance()
+    // Repository'yi güvenli şekilde al
+    val widgetRepository = try {
+        WidgetRepository.getInstance()
+    } catch (e: Exception) {
+        null
+    }
+
+    // Eğer repository yoksa, fallback UI göster
+    if (widgetRepository == null) {
+        FallbackWidgetContent()
+        return
+    }
+
+    // Normal widget içeriği
     val recentItems by widgetRepository.getRecentItems(6).collectAsState(initial = emptyList())
     val isServiceRunning by widgetRepository.isServiceRunning().collectAsState(initial = false)
 
@@ -68,6 +80,60 @@ fun ClipboWidgetContent() {
             } else {
                 ClipboardItemsList(items = recentItems)
             }
+        }
+    }
+}
+
+@Composable
+fun FallbackWidgetContent() {
+    Box(
+        modifier = GlanceModifier
+            .fillMaxSize()
+            .appWidgetBackground()
+            .background(
+                ColorProvider(
+                    day = Color(0xFFF8F4FF),
+                    night = Color(0xFF1A1A1A)
+                )
+            )
+            .padding(12.dp)
+            .clickable(actionStartActivity<MainActivity>())
+    ) {
+        Column(
+            modifier = GlanceModifier.fillMaxSize(),
+            horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
+            verticalAlignment = Alignment.Vertical.CenterVertically
+        ) {
+            Text(
+                text = "📋",
+                style = TextStyle(fontSize = 32.sp)
+            )
+
+            Spacer(modifier = GlanceModifier.height(8.dp))
+
+            Text(
+                text = "Clipbo",
+                style = TextStyle(
+                    color = ColorProvider(
+                        day = Color(0xFF2D2D2D),
+                        night = Color(0xFFFFFFFF)
+                    ),
+                    fontSize = 16.sp
+                )
+            )
+
+            Spacer(modifier = GlanceModifier.height(4.dp))
+
+            Text(
+                text = "Dokunarak açın",
+                style = TextStyle(
+                    color = ColorProvider(
+                        day = Color(0xFF666666),
+                        night = Color(0xFF999999)
+                    ),
+                    fontSize = 12.sp
+                )
+            )
         }
     }
 }

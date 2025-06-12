@@ -15,6 +15,8 @@ import androidx.core.app.NotificationManagerCompat
 import com.bt.clipbo.R
 import com.bt.clipbo.data.database.ClipboardDao
 import com.bt.clipbo.data.database.ClipboardEntity
+import com.bt.clipbo.widget.WidgetUtils
+import com.bt.clipbo.widget.repository.WidgetRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
 import javax.inject.Inject
@@ -77,6 +79,9 @@ class ClipboardService : Service() {
                 }
             }
 
+            // Widget repository status'unu güncelle
+            updateWidgetServiceStatus(true)
+
             Log.d(TAG, "🎉 ClipboardService tamamen başlatıldı!")
 
             // Ana thread'de toast göster
@@ -100,14 +105,25 @@ class ClipboardService : Service() {
             Log.e(TAG, "❌ Listener kaldırma hatası: ${e.message}")
         }
 
+        // Widget repository status'unu güncelle
+        updateWidgetServiceStatus(false)
+
+        // Widget'ları güncelle
+        updateAllWidgets()
+
         serviceScope.cancel()
         Log.d(TAG, "✅ Service scope iptal edildi")
+
+        // Ana thread'de toast göster
+        CoroutineScope(Dispatchers.Main).launch {
+            Toast.makeText(this@ClipboardService, "⏹️ Clipboard servisi durduruldu", Toast.LENGTH_SHORT).show()
+        }
     }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
     private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
-        Log.d(TAG, "Clipboard değişikliği algılandı")
+        Log.d(TAG, "📋 Clipboard değişikliği algılandı")
 
         try {
             val clipData = clipboardManager.primaryClip
@@ -129,9 +145,9 @@ class ClipboardService : Service() {
                     serviceScope.launch {
                         try {
                             saveClipboardItem(clipText)
-                            Log.d(TAG, "Clipboard başarıyla kaydedildi")
+                            Log.d(TAG, "✅ Clipboard başarıyla kaydedildi")
                         } catch (e: Exception) {
-                            Log.e(TAG, "Clipboard kaydedilirken hata oluştu: ${e.message}", e)
+                            Log.e(TAG, "❌ Clipboard kaydedilirken hata oluştu: ${e.message}", e)
                         }
                     }
                 } else {
@@ -141,7 +157,7 @@ class ClipboardService : Service() {
                 Log.d(TAG, "ClipData null veya boş")
             }
         } catch (e: Exception) {
-            Log.e(TAG, "Clipboard dinleme sırasında hata: ${e.message}", e)
+            Log.e(TAG, "❌ Clipboard dinleme sırasında hata: ${e.message}", e)
         }
     }
 
@@ -171,6 +187,9 @@ class ClipboardService : Service() {
                 clipboardDao.keepOnlyLatest(100)
                 Log.d(TAG, "🧹 Eski kayıtlar temizlendi (toplam: $itemCount)")
             }
+
+            // Widget'ları güncelle
+            updateAllWidgets()
 
             // Ana thread'de başarı mesajı
             CoroutineScope(Dispatchers.Main).launch {
@@ -256,4 +275,32 @@ class ClipboardService : Service() {
         .setOngoing(true)
         .setPriority(NotificationCompat.PRIORITY_LOW)
         .build()
+
+    // Widget ile ilgili yardımcı methodlar
+    private fun updateWidgetServiceStatus(isRunning: Boolean) {
+        try {
+            val widgetRepository = WidgetRepository.getInstance()
+            widgetRepository.updateServiceStatus(isRunning)
+            Log.d(TAG, "✅ Widget servis durumu güncellendi: $isRunning")
+        } catch (e: Exception) {
+            Log.w(TAG, "⚠️ Widget repository bulunamadı: ${e.message}")
+
+            // Fallback: SharedPreferences kullan
+            val prefs = getSharedPreferences("clipbo_prefs", Context.MODE_PRIVATE)
+            prefs.edit().putBoolean("service_running", isRunning).apply()
+            Log.d(TAG, "✅ Fallback ile servis durumu güncellendi: $isRunning")
+        }
+    }
+
+    private fun updateAllWidgets() {
+        // Ana thread'de widget güncellemesi yap
+        CoroutineScope(Dispatchers.Main).launch {
+            try {
+                WidgetUtils.updateAllWidgets(this@ClipboardService)
+                Log.d(TAG, "✅ Widget'lar güncellendi")
+            } catch (e: Exception) {
+                Log.w(TAG, "⚠️ Widget güncelleme hatası: ${e.message}")
+            }
+        }
+    }
 }
