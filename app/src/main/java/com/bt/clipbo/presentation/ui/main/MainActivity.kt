@@ -144,7 +144,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun checkNotificationPermissionAndStart() {
-        if (PermissionHelper.hasNotificationPermission(this)) {
+        if (PermissionHelper(this).hasNotificationPermission().isGranted) {
             startClipboardService()
         } else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

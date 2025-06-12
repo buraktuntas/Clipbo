@@ -1,69 +1,25 @@
 package com.bt.clipbo.presentation.ui.settings
 
-
 import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
-import androidx.compose.material.icons.filled.ChevronRight
-import androidx.compose.material.icons.filled.Clear
-import androidx.compose.material.icons.filled.DarkMode
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.DeleteForever
-import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.FileUpload
-import androidx.compose.material.icons.filled.Fingerprint
-import androidx.compose.material.icons.filled.Gavel
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material.icons.filled.PlayArrow
-import androidx.compose.material.icons.filled.PrivacyTip
-import androidx.compose.material.icons.filled.Security
-import androidx.compose.material.icons.filled.Star
-import androidx.compose.material.icons.filled.Storage
-import androidx.compose.material.icons.filled.Support
-import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.bt.clipbo.data.database.ClipboardEntity
-import com.bt.clipbo.ui.theme.ClipboTheme
+import com.bt.clipbo.presentation.ui.components.BackupProgressDialog
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -73,6 +29,19 @@ fun SettingsScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
+
+    // File picker launchers
+    val exportLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        uri?.let { viewModel.exportBackup(it) }
+    }
+
+    val importLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        uri?.let { viewModel.importBackup(it) }
+    }
 
     Scaffold(
         topBar = {
@@ -169,18 +138,20 @@ fun SettingsScreen(
                 )
             }
 
-            // Veri Yönetimi
+            // Veri Yönetimi - BACKUP/RESTORE BÖLÜMÜ
             SettingsSection(title = "💾 Veri Yönetimi") {
                 SettingsItem(
                     title = "Verileri Dışa Aktar",
                     description = "Clipboard geçmişini JSON olarak dışa aktar",
                     icon = Icons.Default.FileUpload,
-                    onClick = { /* Export işlemi */ },
+                    onClick = {
+                        exportLauncher.launch("clipbo_backup_${System.currentTimeMillis()}.json")
+                    },
                     trailing = {
                         Icon(
                             Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 )
@@ -189,25 +160,68 @@ fun SettingsScreen(
                     title = "Verileri İçe Aktar",
                     description = "Önceki yedekten geri yükle",
                     icon = Icons.Default.FileDownload,
-                    onClick = { /* Import işlemi */ },
+                    onClick = {
+                        importLauncher.launch(arrayOf("application/json", "*/*"))
+                    },
                     trailing = {
                         Icon(
                             Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.primary
                         )
                     }
                 )
 
                 SettingsItem(
+                    title = "Yerel Yedekler",
+                    description = "Otomatik oluşturulan yedekleri görüntüle",
+                    icon = Icons.Default.Folder,
+                    onClick = { viewModel.showLocalBackupsDialog() },
+                    trailing = {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            if (uiState.localBackupCount > 0) {
+                                Text(
+                                    text = "${uiState.localBackupCount}",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                            }
+                            Icon(
+                                Icons.Default.ChevronRight,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                    }
+                )
+
+                SettingsItem(
+                    title = "Otomatik Yedekleme",
+                    description = if (uiState.autoBackupEnabled) "Günlük otomatik yedek oluşturuluyor"
+                    else "Otomatik yedekleme kapalı",
+                    icon = Icons.Default.Schedule,
+                    trailing = {
+                        Switch(
+                            checked = uiState.autoBackupEnabled,
+                            onCheckedChange = { viewModel.toggleAutoBackup() }
+                        )
+                    }
+                )
+
+                Divider(modifier = Modifier.padding(vertical = 8.dp))
+
+                SettingsItem(
                     title = "Tüm Verileri Sil",
                     description = "Tüm clipboard geçmişini kalıcı olarak sil",
                     icon = Icons.Default.DeleteForever,
-                    onClick = { /* Clear all data */ },
+                    onClick = { viewModel.showClearAllDataDialog() },
                     textColor = MaterialTheme.colorScheme.error,
                     trailing = {
                         Icon(
-                            Icons.Default.ChevronRight,
+                            Icons.Default.Warning,
                             contentDescription = null,
                             tint = MaterialTheme.colorScheme.error
                         )
@@ -246,7 +260,7 @@ fun SettingsScreen(
                                 )
 
                                 Text(
-                                    text = "Sınırsız etiket, tema seçenekleri ve daha fazlası",
+                                    text = "Sınırsız etiket, cloud sync ve daha fazlası",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onTertiaryContainer
                                 )
@@ -269,7 +283,7 @@ fun SettingsScreen(
             SettingsSection(title = "ℹ️ Hakkında") {
                 SettingsItem(
                     title = "Sürüm",
-                    description = "Clipbo v1.0 (1)",
+                    description = "Clipbo v${uiState.appVersion}",
                     icon = Icons.Default.Info,
                     onClick = { /* Version info */ }
                 )
@@ -348,7 +362,7 @@ fun SettingsScreen(
         }
     }
 
-    // Maksimum öğe sayısı dialog'u
+    // Dialogs
     if (uiState.showMaxItemsDialog) {
         MaxItemsDialog(
             currentValue = uiState.maxHistoryItems,
@@ -358,5 +372,64 @@ fun SettingsScreen(
                 viewModel.hideMaxItemsDialog()
             }
         )
+    }
+
+    if (uiState.showBackupProgress) {
+        BackupProgressDialog(
+            backupRestoreManager = viewModel.getBackupRestoreManager(),
+            onDismiss = { viewModel.hideBackupProgress() }
+        )
+    }
+
+    if (uiState.showLocalBackupsDialog) {
+        /*LocalBackupsDialog(
+            localBackups = uiState.localBackups,
+            onDismiss = { viewModel.hideLocalBackupsDialog() },
+            onRestoreBackup = { backupInfo ->
+                viewModel.restoreLocalBackup(backupInfo)
+            },
+            onDeleteBackup = { backupInfo ->
+                viewModel.deleteLocalBackup(backupInfo)
+            }
+        )*/
+    }
+
+    if (uiState.showClearAllDataDialog) {
+        AlertDialog(
+            onDismissRequest = { viewModel.hideClearAllDataDialog() },
+            icon = { Icon(Icons.Default.Warning, contentDescription = null) },
+            title = { Text("⚠️ Tüm Verileri Sil") },
+            text = {
+                Text(
+                    "Bu işlem geri alınamaz!\n\nTüm clipboard geçmişi, etiketler ve ayarlar kalıcı olarak silinecek.\n\nDevam etmek istediğinizden emin misiniz?"
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.clearAllData()
+                        viewModel.hideClearAllDataDialog()
+                    },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.error
+                    )
+                ) {
+                    Text("Evet, Tümünü Sil")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hideClearAllDataDialog() }) {
+                    Text("İptal")
+                }
+            }
+        )
+    }
+
+    // Toast messages
+    LaunchedEffect(uiState.toastMessage) {
+        uiState.toastMessage?.let { message ->
+            Toast.makeText(context, message, Toast.LENGTH_LONG).show()
+            viewModel.clearToastMessage()
+        }
     }
 }
