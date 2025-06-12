@@ -28,7 +28,7 @@ import androidx.glance.layout.width
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import com.bt.clipbo.presentation.ui.components.getTypeIcon
+import com.bt.clipbo.presentation.ui.components.getTypeDisplayName
 import com.bt.clipbo.presentation.ui.main.MainActivity
 
 @Composable
@@ -64,7 +64,7 @@ fun ClipboardWidgetItem(item: WidgetClipboardItem) {
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = getTypeIcon(item.type),
+                    text = getTypeDisplayName(item.type),
                     style = TextStyle(fontSize = 14.sp)
                 )
             }

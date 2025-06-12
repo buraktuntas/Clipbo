@@ -27,7 +27,6 @@ import androidx.glance.layout.padding
 import androidx.glance.layout.width
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import com.bt.clipbo.presentation.ui.components.getTypeIcon
 import com.bt.clipbo.presentation.ui.main.MainActivity
 import com.bt.clipbo.widget.repository.WidgetRepository
 
