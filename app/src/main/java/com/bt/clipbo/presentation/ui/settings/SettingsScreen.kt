@@ -382,7 +382,7 @@ fun SettingsScreen(
     }
 
     if (uiState.showLocalBackupsDialog) {
-        /*LocalBackupsDialog(
+        LocalBackupsDialog(
             localBackups = uiState.localBackups,
             onDismiss = { viewModel.hideLocalBackupsDialog() },
             onRestoreBackup = { backupInfo ->
@@ -391,7 +391,7 @@ fun SettingsScreen(
             onDeleteBackup = { backupInfo ->
                 viewModel.deleteLocalBackup(backupInfo)
             }
-        )*/
+        )
     }
 
     if (uiState.showClearAllDataDialog) {

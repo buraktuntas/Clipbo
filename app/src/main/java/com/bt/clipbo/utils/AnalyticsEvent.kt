@@ -5,7 +5,7 @@ import android.os.Bundle
 import com.bt.clipbo.data.database.UsageAnalyticsDao
 import com.bt.clipbo.data.database.UsageAnalyticsEntity
 import com.bt.clipbo.data.preferences.UserPreferences
-import com.squareup.leakcanary.core.BuildConfig
+import com.bt.clipbo.BuildConfig
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.*
 import kotlinx.coroutines.flow.first
