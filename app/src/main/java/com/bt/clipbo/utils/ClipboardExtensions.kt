@@ -13,7 +13,7 @@ fun createSampleClipboardItems(): List<ClipboardEntity> {
             type = "URL",
             isPinned = true,
             isSecure = false,
-            preview = "https://github.com/clipbo/android-app"
+            preview = "https://github.com/clipbo/android-app",
         ),
         ClipboardEntity(
             id = 2,
@@ -22,7 +22,7 @@ fun createSampleClipboardItems(): List<ClipboardEntity> {
             type = "EMAIL",
             isPinned = false,
             isSecure = false,
-            preview = "john.doe@example.com"
+            preview = "john.doe@example.com",
         ),
         ClipboardEntity(
             id = 3,
@@ -31,7 +31,7 @@ fun createSampleClipboardItems(): List<ClipboardEntity> {
             type = "PASSWORD",
             isPinned = false,
             isSecure = true,
-            preview = "MySecretPassword123!"
+            preview = "MySecretPassword123!",
         ),
         ClipboardEntity(
             id = 4,
@@ -40,7 +40,7 @@ fun createSampleClipboardItems(): List<ClipboardEntity> {
             type = "PHONE",
             isPinned = false,
             isSecure = false,
-            preview = "+90 555 123 45 67"
+            preview = "+90 555 123 45 67",
         ),
         ClipboardEntity(
             id = 5,
@@ -49,7 +49,7 @@ fun createSampleClipboardItems(): List<ClipboardEntity> {
             type = "TEXT",
             isPinned = true,
             isSecure = false,
-            preview = "Lorem ipsum dolor sit amet, consectetur adipiscing elit..."
-        )
+            preview = "Lorem ipsum dolor sit amet, consectetur adipiscing elit...",
+        ),
     )
 }

@@ -17,7 +17,7 @@ import androidx.compose.ui.Modifier
 fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     OutlinedTextField(
         value = query,
@@ -27,7 +27,7 @@ fun SearchBar(
         leadingIcon = {
             Icon(
                 Icons.Default.Search,
-                contentDescription = "Ara"
+                contentDescription = "Ara",
             )
         },
         trailingIcon = {
@@ -35,12 +35,12 @@ fun SearchBar(
                 IconButton(onClick = { onQueryChange("") }) {
                     Icon(
                         Icons.Default.Clear,
-                        contentDescription = "Temizle"
+                        contentDescription = "Temizle",
                     )
                 }
             }
         },
         singleLine = true,
-        shape = MaterialTheme.shapes.large
+        shape = MaterialTheme.shapes.large,
     )
 }

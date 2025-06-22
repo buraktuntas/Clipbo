@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
@@ -34,7 +33,7 @@ fun TagAssignmentDialog(
     clipboardItem: ClipboardEntity,
     onDismiss: () -> Unit,
     onSave: () -> Unit,
-    viewModel: TagAssignmentViewModel = hiltViewModel()
+    viewModel: TagAssignmentViewModel = hiltViewModel(),
 ) {
     val uiState by viewModel.uiState.collectAsState()
 
@@ -52,22 +51,24 @@ fun TagAssignmentDialog(
                 Text(
                     text = clipboardItem.preview.take(30) + if (clipboardItem.preview.length > 30) "..." else "",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         },
         text = {
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .heightIn(max = 400.dp)
-                    .verticalScroll(rememberScrollState()), // Bu satır eklendi
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                modifier =
+                    Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 400.dp)
+                        .verticalScroll(rememberScrollState()),
+                // Bu satır eklendi
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 if (uiState.isLoading) {
                     Box(
                         modifier = Modifier.fillMaxWidth(),
-                        contentAlignment = Alignment.Center
+                        contentAlignment = Alignment.Center,
                     ) {
                         CircularProgressIndicator()
                     }
@@ -76,14 +77,13 @@ fun TagAssignmentDialog(
                         TagSelectionItem(
                             tag = tag,
                             isSelected = uiState.selectedTags.contains(tag.name),
-                            onToggle = { viewModel.toggleTag(tag) }
+                            onToggle = { viewModel.toggleTag(tag) },
                         )
                     }
                     CreateNewTagButton(
-                        onClick = { viewModel.showCreateTagDialog() }
+                        onClick = { viewModel.showCreateTagDialog() },
                     )
                 }
-
             }
         },
         confirmButton = {
@@ -92,12 +92,12 @@ fun TagAssignmentDialog(
                     viewModel.saveTagAssignments()
                     onSave()
                 },
-                enabled = !uiState.isSaving
+                enabled = !uiState.isSaving,
             ) {
                 if (uiState.isSaving) {
                     CircularProgressIndicator(
                         modifier = Modifier.size(16.dp),
-                        color = MaterialTheme.colorScheme.onPrimary
+                        color = MaterialTheme.colorScheme.onPrimary,
                     )
                 } else {
                     Text("Kaydet")
@@ -108,7 +108,7 @@ fun TagAssignmentDialog(
             TextButton(onClick = onDismiss) {
                 Text("İptal")
             }
-        }
+        },
     )
 
     // Yeni etiket oluşturma dialog'u
@@ -118,7 +118,7 @@ fun TagAssignmentDialog(
             onCreate = { name, color ->
                 viewModel.createNewTag(name, color)
                 viewModel.hideCreateTagDialog()
-            }
+            },
         )
     }
 }

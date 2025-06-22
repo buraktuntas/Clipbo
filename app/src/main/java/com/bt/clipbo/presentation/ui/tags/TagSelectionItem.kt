@@ -30,52 +30,56 @@ import com.bt.clipbo.data.database.TagEntity
 fun TagSelectionItem(
     tag: TagEntity,
     isSelected: Boolean,
-    onToggle: () -> Unit
+    onToggle: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isSelected) {
-                Color(android.graphics.Color.parseColor(tag.color)).copy(alpha = 0.2f)
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
-        ),
-        onClick = onToggle
+        colors =
+            CardDefaults.cardColors(
+                containerColor =
+                    if (isSelected) {
+                        Color(android.graphics.Color.parseColor(tag.color)).copy(alpha = 0.2f)
+                    } else {
+                        MaterialTheme.colorScheme.surface
+                    },
+            ),
+        onClick = onToggle,
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
         ) {
             // Renk göstergesi
             Box(
-                modifier = Modifier
-                    .size(24.dp)
-                    .clip(RoundedCornerShape(6.dp))
-                    .background(Color(android.graphics.Color.parseColor(tag.color)))
+                modifier =
+                    Modifier
+                        .size(24.dp)
+                        .clip(RoundedCornerShape(6.dp))
+                        .background(Color(android.graphics.Color.parseColor(tag.color))),
             )
 
             Spacer(modifier = Modifier.width(12.dp))
 
             // Etiket adı ve kullanım sayısı
             Column(
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             ) {
                 Text(
                     text = tag.name,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
+                    overflow = TextOverflow.Ellipsis,
                 )
 
                 if (tag.usageCount > 0) {
                     Text(
                         text = "${tag.usageCount} kez kullanıldı",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -86,7 +90,7 @@ fun TagSelectionItem(
                     Icons.Default.Check,
                     contentDescription = "Seçili",
                     tint = Color(android.graphics.Color.parseColor(tag.color)),
-                    modifier = Modifier.size(20.dp)
+                    modifier = Modifier.size(20.dp),
                 )
             }
         }

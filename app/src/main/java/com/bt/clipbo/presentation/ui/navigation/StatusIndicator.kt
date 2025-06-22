@@ -20,45 +20,50 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun StatusIndicator(
     isActive: Boolean,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
 ) {
     val pulseScale by animateFloatAsState(
         targetValue = if (isActive) 1.2f else 1f,
-        animationSpec = tween(1000), label = ""
+        animationSpec = tween(1000),
+        label = "",
     )
 
     Box(
         modifier = Modifier.size(50.dp),
-        contentAlignment = Alignment.Center
+        contentAlignment = Alignment.Center,
     ) {
         // Pulse effect için arka plan
         if (isActive) {
             Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .scale(pulseScale)
-                    .clip(CircleShape)
-                    .background(Color(0xFF4CAF50).copy(alpha = 0.2f))
+                modifier =
+                    Modifier
+                        .size(40.dp)
+                        .scale(pulseScale)
+                        .clip(CircleShape)
+                        .background(Color(0xFF4CAF50).copy(alpha = 0.2f)),
             )
         }
 
         // Ana durum göstergesi
         Box(
-            modifier = Modifier
-                .size(20.dp)
-                .clip(CircleShape)
-                .background(
-                    if (isActive) Color(0xFF4CAF50) else Color(0xFFE57373)
-                )
-                .then(
-                    if (isActive) {
-                        Modifier.border(
-                            2.dp,
-                            Color.White,
-                            CircleShape
-                        )
-                    } else Modifier
-                )
+            modifier =
+                Modifier
+                    .size(20.dp)
+                    .clip(CircleShape)
+                    .background(
+                        if (isActive) Color(0xFF4CAF50) else Color(0xFFE57373),
+                    )
+                    .then(
+                        if (isActive) {
+                            Modifier.border(
+                                2.dp,
+                                Color.White,
+                                CircleShape,
+                            )
+                        } else {
+                            Modifier
+                        },
+                    ),
         )
 
         // Loading indicator
@@ -66,7 +71,7 @@ fun StatusIndicator(
             CircularProgressIndicator(
                 modifier = Modifier.size(30.dp),
                 strokeWidth = 2.dp,
-                color = Color(0xFF7B4397)
+                color = Color(0xFF7B4397),
             )
         }
     }

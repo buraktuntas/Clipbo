@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ClipboardDao {
-
     @Query("SELECT * FROM clipboard_items ORDER BY timestamp DESC")
     fun getAllItems(): Flow<List<ClipboardEntity>>
 
@@ -43,5 +42,8 @@ interface ClipboardDao {
     suspend fun keepOnlyLatest(limit: Int)
 
     @Query("UPDATE clipboard_items SET timestamp = :timestamp WHERE content = :content")
-    suspend fun updateItemTimestamp(content: String, timestamp: Long)
+    suspend fun updateItemTimestamp(
+        content: String,
+        timestamp: Long,
+    )
 }

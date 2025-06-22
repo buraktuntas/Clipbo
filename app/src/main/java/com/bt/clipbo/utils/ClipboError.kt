@@ -21,194 +21,203 @@ sealed class ClipboError(
     val code: String,
     val userMessage: String,
     val technicalMessage: String,
-    val isCritical: Boolean = false
+    val isCritical: Boolean = false,
 ) {
     // Database Errors
     object DatabaseConnectionError : ClipboError(
         "DB_001",
         "Veritabanı bağlantı hatası",
-        "Database connection failed"
+        "Database connection failed",
     )
 
     object DatabaseCorruptionError : ClipboError(
         "DB_002",
         "Veritabanı bozuldu, yeniden oluşturuluyor",
         "Database corruption detected",
-        true
+        true,
     )
 
     object DatabaseMigrationError : ClipboError(
         "DB_003",
         "Veritabanı güncelleme hatası",
-        "Database migration failed"
+        "Database migration failed",
     )
 
     // Clipboard Errors
     object ClipboardAccessError : ClipboError(
         "CLIP_001",
         "Clipboard erişim hatası",
-        "Clipboard access denied"
+        "Clipboard access denied",
     )
 
     object ClipboardServiceError : ClipboError(
         "CLIP_002",
         "Clipboard servisi başlatılamadı",
-        "Clipboard service failed to start"
+        "Clipboard service failed to start",
     )
 
     // Encryption Errors
     object EncryptionError : ClipboError(
         "ENC_001",
         "Şifreleme hatası",
-        "Encryption/decryption failed"
+        "Encryption/decryption failed",
     )
 
     object KeyStoreError : ClipboError(
         "ENC_002",
         "Güvenlik anahtarı hatası",
-        "KeyStore operation failed"
+        "KeyStore operation failed",
     )
 
     // Permission Errors
     object PermissionDeniedError : ClipboError(
         "PERM_001",
         "İzin reddedildi",
-        "Required permission denied"
+        "Required permission denied",
     )
 
     object AccessibilityServiceError : ClipboError(
         "PERM_002",
         "Erişilebilirlik servisi aktif değil",
-        "Accessibility service not enabled"
+        "Accessibility service not enabled",
     )
 
     // Network Errors
     object NetworkError : ClipboError(
         "NET_001",
         "İnternet bağlantısı yok",
-        "Network connection failed"
+        "Network connection failed",
     )
 
     object TimeoutError : ClipboError(
         "NET_002",
         "İşlem zaman aşımına uğradı",
-        "Request timeout"
+        "Request timeout",
     )
 
     // Generic Errors
     class UnknownError(technicalMessage: String) : ClipboError(
         "GEN_001",
         "Bilinmeyen hata oluştu",
-        technicalMessage
+        technicalMessage,
     )
 
     class CustomError(userMessage: String, technicalMessage: String) : ClipboError(
         "CUSTOM",
         userMessage,
-        technicalMessage
+        technicalMessage,
     )
 }
 
 @Singleton
-class ErrorHandler @Inject constructor(
-    @ApplicationContext private val context: Context
-) {
-    private val _errorFlow = MutableSharedFlow<ClipboError>()
-    val errorFlow: SharedFlow<ClipboError> = _errorFlow.asSharedFlow()
+class ErrorHandler
+    @Inject
+    constructor(
+        @ApplicationContext private val context: Context,
+    ) {
+        private val _errorFlow = MutableSharedFlow<ClipboError>()
+        val errorFlow: SharedFlow<ClipboError> = _errorFlow.asSharedFlow()
 
-    companion object {
-        private const val TAG = "ErrorHandler"
-    }
-
-    fun handleError(throwable: Throwable): ClipboError {
-        val error = mapThrowableToError(throwable)
-
-        // Log the error
-        if (error.isCritical) {
-            Log.e(TAG, "Critical Error [${error.code}]: ${error.technicalMessage}", throwable)
-        } else {
-            Log.w(TAG, "Error [${error.code}]: ${error.technicalMessage}", throwable)
+        companion object {
+            private const val TAG = "ErrorHandler"
         }
 
-        // Emit error to flow
-        try {
-            _errorFlow.tryEmit(error)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to emit error to flow", e)
-        }
+        fun handleError(throwable: Throwable): ClipboError {
+            val error = mapThrowableToError(throwable)
 
-        return error
-    }
-
-    fun handleError(error: ClipboError, cause: Throwable? = null) {
-        // Log the error
-        if (error.isCritical) {
-            Log.e(TAG, "Critical Error [${error.code}]: ${error.technicalMessage}", cause)
-        } else {
-            Log.w(TAG, "Error [${error.code}]: ${error.technicalMessage}", cause)
-        }
-
-        // Emit error to flow
-        try {
-            _errorFlow.tryEmit(error)
-        } catch (e: Exception) {
-            Log.e(TAG, "Failed to emit error to flow", e)
-        }
-    }
-
-    private fun mapThrowableToError(throwable: Throwable): ClipboError {
-        return when (throwable) {
-            is IOException -> when (throwable) {
-                is ConnectException, is UnknownHostException -> ClipboError.NetworkError
-                is SocketTimeoutException -> ClipboError.TimeoutError
-                else -> ClipboError.UnknownError(throwable.message ?: "IO Exception")
+            // Log the error
+            if (error.isCritical) {
+                Log.e(TAG, "Critical Error [${error.code}]: ${error.technicalMessage}", throwable)
+            } else {
+                Log.w(TAG, "Error [${error.code}]: ${error.technicalMessage}", throwable)
             }
 
-            is SecurityException -> ClipboError.PermissionDeniedError
-
-            is IllegalStateException -> when {
-                throwable.message?.contains("database", true) == true ->
-                    ClipboError.DatabaseConnectionError
-                throwable.message?.contains("keystore", true) == true ->
-                    ClipboError.KeyStoreError
-                else -> ClipboError.UnknownError(throwable.message ?: "Illegal State")
+            // Emit error to flow
+            try {
+                _errorFlow.tryEmit(error)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to emit error to flow", e)
             }
 
-            is RuntimeException -> when {
-                throwable.message?.contains("clipboard", true) == true ->
-                    ClipboError.ClipboardAccessError
-                throwable.message?.contains("encryption", true) == true ->
-                    ClipboError.EncryptionError
-                else -> ClipboError.UnknownError(throwable.message ?: "Runtime Exception")
+            return error
+        }
+
+        fun handleError(
+            error: ClipboError,
+            cause: Throwable? = null,
+        ) {
+            // Log the error
+            if (error.isCritical) {
+                Log.e(TAG, "Critical Error [${error.code}]: ${error.technicalMessage}", cause)
+            } else {
+                Log.w(TAG, "Error [${error.code}]: ${error.technicalMessage}", cause)
             }
 
-            else -> ClipboError.UnknownError(throwable.message ?: throwable::class.simpleName ?: "Unknown")
+            // Emit error to flow
+            try {
+                _errorFlow.tryEmit(error)
+            } catch (e: Exception) {
+                Log.e(TAG, "Failed to emit error to flow", e)
+            }
+        }
+
+        private fun mapThrowableToError(throwable: Throwable): ClipboError {
+            return when (throwable) {
+                is IOException ->
+                    when (throwable) {
+                        is ConnectException, is UnknownHostException -> ClipboError.NetworkError
+                        is SocketTimeoutException -> ClipboError.TimeoutError
+                        else -> ClipboError.UnknownError(throwable.message ?: "IO Exception")
+                    }
+
+                is SecurityException -> ClipboError.PermissionDeniedError
+
+                is IllegalStateException ->
+                    when {
+                        throwable.message?.contains("database", true) == true ->
+                            ClipboError.DatabaseConnectionError
+                        throwable.message?.contains("keystore", true) == true ->
+                            ClipboError.KeyStoreError
+                        else -> ClipboError.UnknownError(throwable.message ?: "Illegal State")
+                    }
+
+                is RuntimeException ->
+                    when {
+                        throwable.message?.contains("clipboard", true) == true ->
+                            ClipboError.ClipboardAccessError
+                        throwable.message?.contains("encryption", true) == true ->
+                            ClipboError.EncryptionError
+                        else -> ClipboError.UnknownError(throwable.message ?: "Runtime Exception")
+                    }
+
+                else -> ClipboError.UnknownError(throwable.message ?: throwable::class.simpleName ?: "Unknown")
+            }
+        }
+
+        fun clearErrors() {
+            // Clear any cached errors if needed
         }
     }
-
-    fun clearErrors() {
-        // Clear any cached errors if needed
-    }
-}
 
 // Composable helper for error handling
 @Composable
 fun ErrorSnackbarHandler(
     errorHandler: ErrorHandler,
-    snackbarHostState: SnackbarHostState
+    snackbarHostState: SnackbarHostState,
 ) {
     LaunchedEffect(errorHandler) {
         errorHandler.errorFlow.collect { error ->
-            val duration = if (error.isCritical) {
-                SnackbarDuration.Long
-            } else {
-                SnackbarDuration.Short
-            }
+            val duration =
+                if (error.isCritical) {
+                    SnackbarDuration.Long
+                } else {
+                    SnackbarDuration.Short
+                }
 
             snackbarHostState.showSnackbar(
                 message = error.userMessage,
                 duration = duration,
-                actionLabel = if (error.isCritical) "Tamam" else null
+                actionLabel = if (error.isCritical) "Tamam" else null,
             )
         }
     }
@@ -217,7 +226,7 @@ fun ErrorSnackbarHandler(
 // Extension functions for easier error handling
 suspend fun <T> runCatchingWithHandler(
     errorHandler: ErrorHandler,
-    block: suspend () -> T
+    block: suspend () -> T,
 ): Result<T> {
     return try {
         Result.success(block())

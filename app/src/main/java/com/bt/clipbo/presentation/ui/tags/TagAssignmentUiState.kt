@@ -9,5 +9,5 @@ data class TagAssignmentUiState(
     val selectedTags: Set<String> = emptySet(),
     val showCreateTagDialog: Boolean = false,
     val isLoading: Boolean = true,
-    val isSaving: Boolean = false
+    val isSaving: Boolean = false,
 )

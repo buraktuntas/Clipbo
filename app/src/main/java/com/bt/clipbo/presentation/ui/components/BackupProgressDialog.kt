@@ -20,7 +20,7 @@ import okhttp3.internal.concurrent.formatDuration
 @Composable
 fun BackupProgressDialog(
     backupRestoreManager: BackupRestoreManager,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
 ) {
     val progress by backupRestoreManager.backupProgress.collectAsState()
 
@@ -31,7 +31,7 @@ fun BackupProgressDialog(
             Column {
                 LinearProgressIndicator(
                     progress = progress.progress / 100f,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
                 )
 
                 Spacer(modifier = Modifier.height(8.dp))
@@ -41,21 +41,21 @@ fun BackupProgressDialog(
                 if (progress.totalItems > 0) {
                     Text(
                         "${progress.currentItem}/${progress.totalItems} öğe",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
 
                 if (progress.estimatedTimeLeft > 0) {
                     Text(
                         "Kalan süre: ${formatDuration(progress.estimatedTimeLeft)}",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
                     )
                 }
 
                 if (progress.error != null) {
                     Text(
                         "❌ ${progress.error}",
-                        color = MaterialTheme.colorScheme.error
+                        color = MaterialTheme.colorScheme.error,
                     )
                 }
             }
@@ -66,6 +66,6 @@ fun BackupProgressDialog(
                     Text("Tamam")
                 }
             }
-        }
+        },
     )
 }

@@ -1,17 +1,14 @@
 package com.bt.clipbo.data.service
 
 import android.accessibilityservice.AccessibilityService
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import android.view.accessibility.AccessibilityEvent
-import com.bt.clipbo.data.service.ClipboardService
 import kotlinx.coroutines.*
 
 class ClipboAccessibilityService : AccessibilityService() {
-
     private lateinit var clipboardManager: ClipboardManager
     private var serviceScope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private var lastClipboardContent = ""
@@ -77,40 +74,41 @@ class ClipboAccessibilityService : AccessibilityService() {
         Log.d(TAG, "♿ Accessibility Service interrupted")
     }
 
-    private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
-        Log.d(TAG, "📋 Clipboard değişikliği algılandı (Accessibility)")
+    private val clipboardListener =
+        ClipboardManager.OnPrimaryClipChangedListener {
+            Log.d(TAG, "📋 Clipboard değişikliği algılandı (Accessibility)")
 
-        try {
-            val clipData = clipboardManager.primaryClip
-            if (clipData != null && clipData.itemCount > 0) {
-                val clipText = clipData.getItemAt(0).text?.toString()
-                val source = clipData.description.label?.toString()
+            try {
+                val clipData = clipboardManager.primaryClip
+                if (clipData != null && clipData.itemCount > 0) {
+                    val clipText = clipData.getItemAt(0).text?.toString()
+                    val source = clipData.description.label?.toString()
 
-                // Uygulama içi kopyalamaları kontrol et
-                if (source == "Clipbo") {
-                    Log.d(TAG, "Uygulama içi kopyalama, yeni kayıt oluşturulmayacak")
-                    return@OnPrimaryClipChangedListener
-                }
+                    // Uygulama içi kopyalamaları kontrol et
+                    if (source == "Clipbo") {
+                        Log.d(TAG, "Uygulama içi kopyalama, yeni kayıt oluşturulmayacak")
+                        return@OnPrimaryClipChangedListener
+                    }
 
-                if (!clipText.isNullOrBlank() && clipText != lastClipboardContent) {
-                    lastClipboardContent = clipText
-                    Log.d(TAG, "Yeni clipboard içeriği: ${clipText.take(30)}...")
+                    if (!clipText.isNullOrBlank() && clipText != lastClipboardContent) {
+                        lastClipboardContent = clipText
+                        Log.d(TAG, "Yeni clipboard içeriği: ${clipText.take(30)}...")
 
-                    // Clipboard service'e bildir
-                    serviceScope.launch {
-                        try {
-                            val intent = Intent(this@ClipboAccessibilityService, ClipboardService::class.java)
-                            intent.putExtra("clipboard_content", clipText)
-                            intent.putExtra("source", "accessibility")
-                            startService(intent)
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Clipboard service'e bildirim hatası: ${e.message}")
+                        // Clipboard service'e bildir
+                        serviceScope.launch {
+                            try {
+                                val intent = Intent(this@ClipboAccessibilityService, ClipboardService::class.java)
+                                intent.putExtra("clipboard_content", clipText)
+                                intent.putExtra("source", "accessibility")
+                                startService(intent)
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Clipboard service'e bildirim hatası: ${e.message}")
+                            }
                         }
                     }
                 }
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Accessibility clipboard dinleme hatası: ${e.message}", e)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Accessibility clipboard dinleme hatası: ${e.message}", e)
         }
-    }
 }

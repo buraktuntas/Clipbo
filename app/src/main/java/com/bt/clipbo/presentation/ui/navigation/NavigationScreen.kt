@@ -12,7 +12,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 
@@ -26,7 +25,7 @@ fun NavigationScreen(
     onNavigateToSettings: () -> Unit = {},
     onStartService: () -> Unit = {},
     onStopService: () -> Unit = {},
-    onNavigateToStatistics: () -> Unit = {}
+    onNavigateToStatistics: () -> Unit = {},
 ) {
     var isServiceRunning by remember { mutableStateOf(false) }
     val statisticsViewModel: StatisticsViewModel = hiltViewModel()
@@ -37,30 +36,32 @@ fun NavigationScreen(
             TopAppBar(
                 title = {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
                             text = "📋",
-                            style = MaterialTheme.typography.titleLarge
+                            style = MaterialTheme.typography.titleLarge,
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Clipbo")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color.Transparent,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                    ),
             )
-        }
+        },
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
-                .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp)
+                    .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
             // Servis durumu kartı
             ServiceStatusCard(
@@ -72,7 +73,7 @@ fun NavigationScreen(
                         onStartService()
                     }
                     isServiceRunning = !isServiceRunning
-                }
+                },
             )
 
             // İstatistik kartı
@@ -80,29 +81,29 @@ fun NavigationScreen(
                 todayCount = statisticsState.todayCount,
                 weekCount = statisticsState.weekCount,
                 totalCount = statisticsState.totalCount,
-                onViewAllStats = onNavigateToStatistics
+                onViewAllStats = onNavigateToStatistics,
             )
 
             // Ana özellikler başlığı
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Text(
                     text = "🚀",
-                    style = MaterialTheme.typography.titleMedium
+                    style = MaterialTheme.typography.titleMedium,
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = "Ana Özellikler",
                     style = MaterialTheme.typography.titleMedium,
-                    color = Color(0xFF4A4A4A)
+                    color = Color(0xFF4A4A4A),
                 )
             }
 
             // Özellik kartları - 2x2 grid
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 FeatureCard(
                     title = "Geçmiş",
@@ -110,7 +111,7 @@ fun NavigationScreen(
                     icon = "📋",
                     onClick = onNavigateToHistory,
                     modifier = Modifier.weight(1f),
-                    backgroundColor = Color(0xFFF3E5F5)
+                    backgroundColor = Color(0xFFF3E5F5),
                 )
 
                 FeatureCard(
@@ -119,13 +120,13 @@ fun NavigationScreen(
                     icon = "🔍",
                     onClick = onNavigateToSearch,
                     modifier = Modifier.weight(1f),
-                    backgroundColor = Color(0xFFF3E5F5)
+                    backgroundColor = Color(0xFFF3E5F5),
                 )
             }
 
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 FeatureCard(
                     title = "Etiketler",
@@ -133,7 +134,7 @@ fun NavigationScreen(
                     icon = "🏷️",
                     onClick = onNavigateToTags,
                     modifier = Modifier.weight(1f),
-                    backgroundColor = Color(0xFFF3E5F5)
+                    backgroundColor = Color(0xFFF3E5F5),
                 )
 
                 FeatureCard(
@@ -142,7 +143,7 @@ fun NavigationScreen(
                     icon = "🔒",
                     onClick = onNavigateToSecure,
                     modifier = Modifier.weight(1f),
-                    backgroundColor = Color(0xFFF3E5F5)
+                    backgroundColor = Color(0xFFF3E5F5),
                 )
             }
 
@@ -152,9 +153,10 @@ fun NavigationScreen(
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Color(0xFF7B4397)),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = Color(0xFF7B4397)
-                )
+                colors =
+                    ButtonDefaults.outlinedButtonColors(
+                        contentColor = Color(0xFF7B4397),
+                    ),
             ) {
                 Icon(Icons.Default.Settings, contentDescription = null)
                 Spacer(modifier = Modifier.width(8.dp))

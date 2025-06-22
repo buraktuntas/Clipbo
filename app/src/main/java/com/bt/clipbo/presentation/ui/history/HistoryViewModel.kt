@@ -12,49 +12,51 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class HistoryViewModel @Inject constructor(
-    private val clipboardUseCase: ClipboardUseCase
-) : ViewModel() {
+class HistoryViewModel
+    @Inject
+    constructor(
+        private val clipboardUseCase: ClipboardUseCase,
+    ) : ViewModel() {
+        private val _uiState = MutableStateFlow(HistoryUiState())
+        val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
 
-    private val _uiState = MutableStateFlow(HistoryUiState())
-    val uiState: StateFlow<HistoryUiState> = _uiState.asStateFlow()
+        init {
+            loadClipboardItems()
+        }
 
-    init {
-        loadClipboardItems()
-    }
+        private fun loadClipboardItems() {
+            viewModelScope.launch {
+                clipboardUseCase.getAllItems().collect { items ->
+                    _uiState.value =
+                        _uiState.value.copy(
+                            clipboardItems = items,
+                            isLoading = false,
+                        )
+                }
+            }
+        }
 
-    private fun loadClipboardItems() {
-        viewModelScope.launch {
-            clipboardUseCase.getAllItems().collect { items ->
-                _uiState.value = _uiState.value.copy(
-                    clipboardItems = items,
-                    isLoading = false
-                )
+        fun copyToClipboard(content: String) {
+            viewModelScope.launch {
+                clipboardUseCase.copyToClipboard(content)
+            }
+        }
+
+        fun deleteItem(item: ClipboardEntity) {
+            viewModelScope.launch {
+                clipboardUseCase.deleteItem(item)
+            }
+        }
+
+        fun togglePin(item: ClipboardEntity) {
+            viewModelScope.launch {
+                clipboardUseCase.togglePin(item)
+            }
+        }
+
+        fun clearAllUnpinned() {
+            viewModelScope.launch {
+                clipboardUseCase.clearAllUnpinned()
             }
         }
     }
-
-    fun copyToClipboard(content: String) {
-        viewModelScope.launch {
-            clipboardUseCase.copyToClipboard(content)
-        }
-    }
-
-    fun deleteItem(item: ClipboardEntity) {
-        viewModelScope.launch {
-            clipboardUseCase.deleteItem(item)
-        }
-    }
-
-    fun togglePin(item: ClipboardEntity) {
-        viewModelScope.launch {
-            clipboardUseCase.togglePin(item)
-        }
-    }
-
-    fun clearAllUnpinned() {
-        viewModelScope.launch {
-            clipboardUseCase.clearAllUnpinned()
-        }
-    }
-}

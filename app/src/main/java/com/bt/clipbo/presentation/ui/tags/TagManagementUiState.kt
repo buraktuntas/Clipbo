@@ -5,5 +5,5 @@ import com.bt.clipbo.data.database.TagEntity
 data class TagManagementUiState(
     val tags: List<TagEntity> = emptyList(),
     val isLoading: Boolean = true,
-    val showCreateDialog: Boolean = false
+    val showCreateDialog: Boolean = false,
 )

@@ -13,25 +13,27 @@ import androidx.compose.ui.window.Dialog
 fun RatingDialog(
     onDismiss: () -> Unit,
     onRate: () -> Unit,
-    onLater: () -> Unit
+    onLater: () -> Unit,
 ) {
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            shape = MaterialTheme.shapes.large
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
+            shape = MaterialTheme.shapes.large,
         ) {
             Column(
-                modifier = Modifier
-                    .padding(24.dp)
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier =
+                    Modifier
+                        .padding(24.dp)
+                        .fillMaxWidth(),
+                horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Text(
                     text = "⭐️ Clipbo'yu Değerlendirin",
                     style = MaterialTheme.typography.titleLarge,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -39,25 +41,25 @@ fun RatingDialog(
                 Text(
                     text = "Clipbo'yu kullanmaktan memnun musunuz? Deneyiminizi değerlendirmek ister misiniz?",
                     style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center
+                    textAlign = TextAlign.Center,
                 )
 
                 Spacer(modifier = Modifier.height(24.dp))
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     OutlinedButton(
                         onClick = onLater,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     ) {
                         Text("Daha Sonra")
                     }
 
                     Button(
                         onClick = onRate,
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     ) {
                         Text("Değerlendir")
                     }
@@ -65,4 +67,4 @@ fun RatingDialog(
             }
         }
     }
-} 
+}

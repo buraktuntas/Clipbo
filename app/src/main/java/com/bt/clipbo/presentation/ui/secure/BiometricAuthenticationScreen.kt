@@ -37,28 +37,29 @@ fun BiometricAuthenticationScreen(
     biometricStatus: BiometricStatus,
     isAuthenticating: Boolean,
     onAuthenticate: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.padding(24.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.Center,
     ) {
         // Güvenlik ikonu
         Card(
             modifier = Modifier.size(120.dp),
             shape = RoundedCornerShape(60.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = Color(0xFF1A237E).copy(alpha = 0.1f)
-            )
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = Color(0xFF1A237E).copy(alpha = 0.1f),
+                ),
         ) {
             Box(
                 modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
+                contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "🔒",
-                    style = MaterialTheme.typography.displayLarge
+                    style = MaterialTheme.typography.displayLarge,
                 )
             }
         }
@@ -68,7 +69,7 @@ fun BiometricAuthenticationScreen(
         Text(
             text = "Güvenli Pano",
             style = MaterialTheme.typography.headlineMedium,
-            color = Color(0xFF1A237E)
+            color = Color(0xFF1A237E),
         )
 
         Spacer(modifier = Modifier.height(8.dp))
@@ -77,7 +78,7 @@ fun BiometricAuthenticationScreen(
             text = "Hassas verilerinizi korumak için\nbiyometrik doğrulama gerekli",
             style = MaterialTheme.typography.bodyLarge,
             textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -93,30 +94,32 @@ fun BiometricAuthenticationScreen(
                 Button(
                     onClick = onAuthenticate,
                     enabled = !isAuthenticating,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Color(0xFF1A237E)
-                    ),
-                    shape = RoundedCornerShape(16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = Color(0xFF1A237E),
+                        ),
+                    shape = RoundedCornerShape(16.dp),
                 ) {
                     if (isAuthenticating) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(24.dp),
-                            color = Color.White
+                            color = Color.White,
                         )
                     } else {
                         Icon(
                             Icons.Default.Face,
                             contentDescription = null,
-                            tint = Color.White
+                            tint = Color.White,
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
                             "Parmak İzi ile Doğrula",
                             color = Color.White,
-                            style = MaterialTheme.typography.titleMedium
+                            style = MaterialTheme.typography.titleMedium,
                         )
                     }
                 }
@@ -125,10 +128,11 @@ fun BiometricAuthenticationScreen(
             BiometricStatus.NONE_ENROLLED -> {
                 OutlinedButton(
                     onClick = { /* Ayarlara yönlendir */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                    shape = RoundedCornerShape(16.dp),
                 ) {
                     Icon(Icons.Default.Settings, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -139,13 +143,15 @@ fun BiometricAuthenticationScreen(
             else -> {
                 Button(
                     onClick = { /* Manual şifre */ },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondary
-                    ),
-                    shape = RoundedCornerShape(16.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondary,
+                        ),
+                    shape = RoundedCornerShape(16.dp),
                 ) {
                     Icon(Icons.Default.Lock, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))

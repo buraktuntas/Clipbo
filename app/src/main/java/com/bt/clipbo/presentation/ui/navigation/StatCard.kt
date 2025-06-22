@@ -25,24 +25,26 @@ fun StatCard(
     label: String,
     icon: String,
     color: Color,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Card(
         modifier = modifier,
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.White.copy(alpha = 0.4f)
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = Color.White.copy(alpha = 0.4f),
+            ),
     ) {
-        Column (
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Column(
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Text(
                 text = icon,
-                style = MaterialTheme.typography.titleMedium
+                style = MaterialTheme.typography.titleMedium,
             )
 
             Spacer(modifier = Modifier.height(4.dp))
@@ -51,14 +53,14 @@ fun StatCard(
                 text = value.toString(),
                 style = MaterialTheme.typography.titleLarge,
                 fontWeight = FontWeight.Bold,
-                color = color
+                color = color,
             )
 
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
                 color = Color(0xFF666666),
-                textAlign = TextAlign.Center
+                textAlign = TextAlign.Center,
             )
         }
     }

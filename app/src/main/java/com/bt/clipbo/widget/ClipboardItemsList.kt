@@ -23,7 +23,7 @@ import com.bt.clipbo.presentation.ui.main.MainActivity
 @Composable
 fun ClipboardItemsList(items: List<WidgetClipboardItem>) {
     LazyColumn(
-        modifier = GlanceModifier.fillMaxSize()
+        modifier = GlanceModifier.fillMaxSize(),
     ) {
         items(items.take(5)) { item ->
             ClipboardWidgetItem(item = item)
@@ -38,20 +38,23 @@ fun ClipboardItemsList(items: List<WidgetClipboardItem>) {
             Spacer(modifier = GlanceModifier.height(4.dp))
 
             Row(
-                modifier = GlanceModifier
-                    .fillMaxWidth()
-                    .clickable(actionStartActivity<MainActivity>()),
-                horizontalAlignment = Alignment.Horizontal.CenterHorizontally
+                modifier =
+                    GlanceModifier
+                        .fillMaxWidth()
+                        .clickable(actionStartActivity<MainActivity>()),
+                horizontalAlignment = Alignment.Horizontal.CenterHorizontally,
             ) {
                 Text(
                     text = "Tümünü Gör →",
-                    style = TextStyle(
-                        color = ColorProvider(
-                            day = Color(0xFF7B4397),
-                            night = Color(0xFFBB86FC)
+                    style =
+                        TextStyle(
+                            color =
+                                ColorProvider(
+                                    day = Color(0xFF7B4397),
+                                    night = Color(0xFFBB86FC),
+                                ),
+                            fontSize = 11.sp,
                         ),
-                        fontSize = 11.sp
-                    )
                 )
             }
         }

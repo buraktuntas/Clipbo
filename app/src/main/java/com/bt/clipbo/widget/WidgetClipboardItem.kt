@@ -7,5 +7,5 @@ data class WidgetClipboardItem(
     val type: String,
     val timestamp: Long,
     val isPinned: Boolean,
-    val isSecure: Boolean
+    val isSecure: Boolean,
 )

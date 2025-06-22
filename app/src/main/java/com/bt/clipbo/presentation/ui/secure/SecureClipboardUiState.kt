@@ -9,5 +9,5 @@ data class SecureClipboardUiState(
     val isAuthenticating: Boolean = false,
     val isLoading: Boolean = true,
     val biometricStatus: BiometricStatus = BiometricStatus.UNKNOWN,
-    val showBiometricStatus: Boolean = false
+    val showBiometricStatus: Boolean = false,
 )

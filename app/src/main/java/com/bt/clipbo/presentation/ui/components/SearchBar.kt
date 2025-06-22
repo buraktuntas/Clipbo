@@ -31,7 +31,7 @@ fun SearchBar(
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
     leadingIcon: @Composable (() -> Unit)? = null,
-    trailingIcon: @Composable (() -> Unit)? = null
+    trailingIcon: @Composable (() -> Unit)? = null,
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     val focusRequester = remember { FocusRequester() }
@@ -39,60 +39,66 @@ fun SearchBar(
     OutlinedTextField(
         value = query,
         onValueChange = onQueryChange,
-        modifier = modifier
-            .fillMaxWidth()
-            .focusRequester(focusRequester),
+        modifier =
+            modifier
+                .fillMaxWidth()
+                .focusRequester(focusRequester),
         enabled = enabled,
         placeholder = {
             Text(
                 text = placeholder,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
         },
-        leadingIcon = leadingIcon ?: {
-            Icon(
-                Icons.Default.Search,
-                contentDescription = "Ara",
-                tint = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-        },
-        trailingIcon = trailingIcon ?: {
-            AnimatedVisibility(
-                visible = query.isNotEmpty(),
-                enter = fadeIn(),
-                exit = fadeOut()
-            ) {
-                IconButton(
-                    onClick = {
-                        onQueryChange("")
-                    }
+        leadingIcon =
+            leadingIcon ?: {
+                Icon(
+                    Icons.Default.Search,
+                    contentDescription = "Ara",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            },
+        trailingIcon =
+            trailingIcon ?: {
+                AnimatedVisibility(
+                    visible = query.isNotEmpty(),
+                    enter = fadeIn(),
+                    exit = fadeOut(),
                 ) {
-                    Icon(
-                        Icons.Default.Clear,
-                        contentDescription = "Temizle",
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    IconButton(
+                        onClick = {
+                            onQueryChange("")
+                        },
+                    ) {
+                        Icon(
+                            Icons.Default.Clear,
+                            contentDescription = "Temizle",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
                 }
-            }
-        },
+            },
         singleLine = true,
         shape = RoundedCornerShape(28.dp),
-        colors = OutlinedTextFieldDefaults.colors(
-            focusedBorderColor = MaterialTheme.colorScheme.primary,
-            unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
-            focusedContainerColor = MaterialTheme.colorScheme.surface,
-            unfocusedContainerColor = MaterialTheme.colorScheme.surface
-        ),
-        keyboardOptions = KeyboardOptions(
-            keyboardType = KeyboardType.Text,
-            imeAction = ImeAction.Search
-        ),
-        keyboardActions = KeyboardActions(
-            onSearch = {
-                onSearch(query)
-                keyboardController?.hide()
-            }
-        )
+        colors =
+            OutlinedTextFieldDefaults.colors(
+                focusedBorderColor = MaterialTheme.colorScheme.primary,
+                unfocusedBorderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
+                focusedContainerColor = MaterialTheme.colorScheme.surface,
+                unfocusedContainerColor = MaterialTheme.colorScheme.surface,
+            ),
+        keyboardOptions =
+            KeyboardOptions(
+                keyboardType = KeyboardType.Text,
+                imeAction = ImeAction.Search,
+            ),
+        keyboardActions =
+            KeyboardActions(
+                onSearch = {
+                    onSearch(query)
+                    keyboardController?.hide()
+                },
+            ),
     )
 }
 
@@ -104,35 +110,35 @@ fun ExpandableSearchBar(
     onExpandedChange: (Boolean) -> Unit,
     onSearch: (String) -> Unit = {},
     placeholder: String = "Ara...",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Row(
         modifier = modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         AnimatedVisibility(
             visible = isExpanded,
             enter = fadeIn(),
-            exit = fadeOut()
+            exit = fadeOut(),
         ) {
             SearchBar(
                 query = query,
                 onQueryChange = onQueryChange,
                 onSearch = onSearch,
                 placeholder = placeholder,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.weight(1f),
             )
         }
 
         if (!isExpanded) {
             IconButton(
-                onClick = { onExpandedChange(true) }
+                onClick = { onExpandedChange(true) },
             ) {
                 Icon(
                     Icons.Default.Search,
                     contentDescription = "Ara",
-                    tint = MaterialTheme.colorScheme.onSurface
+                    tint = MaterialTheme.colorScheme.onSurface,
                 )
             }
         } else {
@@ -140,7 +146,7 @@ fun ExpandableSearchBar(
                 onClick = {
                     onExpandedChange(false)
                     onQueryChange("")
-                }
+                },
             ) {
                 Text("İptal")
             }
@@ -156,11 +162,11 @@ fun SearchBarWithFilters(
     filterCount: Int = 0,
     onFilterClick: () -> Unit = {},
     placeholder: String = "Ara...",
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(8.dp),
     ) {
         SearchBar(
             query = query,
@@ -174,31 +180,31 @@ fun SearchBarWithFilters(
                             onClick = onFilterClick,
                             label = { Text("$filterCount Filtre") },
                             selected = true,
-                            modifier = Modifier.padding(end = 8.dp)
+                            modifier = Modifier.padding(end = 8.dp),
                         )
                     } else {
                         IconButton(onClick = onFilterClick) {
                             Icon(
                                 Icons.Default.Search, // Filtre ikonu yerine
-                                contentDescription = "Filtreler"
+                                contentDescription = "Filtreler",
                             )
                         }
                     }
 
                     AnimatedVisibility(
-                        visible = query.isNotEmpty()
+                        visible = query.isNotEmpty(),
                     ) {
                         IconButton(
-                            onClick = { onQueryChange("") }
+                            onClick = { onQueryChange("") },
                         ) {
                             Icon(
                                 Icons.Default.Clear,
-                                contentDescription = "Temizle"
+                                contentDescription = "Temizle",
                             )
                         }
                     }
                 }
-            }
+            },
         )
     }
 }

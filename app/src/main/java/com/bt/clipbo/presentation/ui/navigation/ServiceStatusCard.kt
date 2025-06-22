@@ -19,14 +19,13 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
 @Composable
 fun ServiceStatusCard(
     isServiceRunning: Boolean,
     onToggleService: () -> Unit,
-    isLoading: Boolean = false
+    isLoading: Boolean = false,
 ) {
     val interactionSource = remember { MutableInteractionSource() }
     val isPressed by interactionSource.collectIsPressedAsState()
@@ -34,67 +33,75 @@ fun ServiceStatusCard(
     // Animasyon değerleri
     val cardScale by animateFloatAsState(
         targetValue = if (isPressed) 0.98f else 1f,
-        animationSpec = tween(100), label = ""
+        animationSpec = tween(100),
+        label = "",
     )
 
     val statusColor by animateColorAsState(
         targetValue = if (isServiceRunning) Color(0xFF4CAF50) else Color(0xFFE57373),
-        animationSpec = tween(300), label = ""
+        animationSpec = tween(300),
+        label = "",
     )
 
     // Gradient arka plan
-    val backgroundGradient = Brush.verticalGradient(
-        colors = listOf(
-            Color(0xFFF8F4FF),
-            Color(0xFFF3E5F5)
+    val backgroundGradient =
+        Brush.verticalGradient(
+            colors =
+                listOf(
+                    Color(0xFFF8F4FF),
+                    Color(0xFFF3E5F5),
+                ),
         )
-    )
 
     Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .scale(cardScale)
-            .shadow(
-                elevation = if (isPressed) 2.dp else 8.dp,
-                shape = RoundedCornerShape(20.dp)
-            ),
+        modifier =
+            Modifier
+                .fillMaxWidth()
+                .scale(cardScale)
+                .shadow(
+                    elevation = if (isPressed) 2.dp else 8.dp,
+                    shape = RoundedCornerShape(20.dp),
+                ),
         shape = RoundedCornerShape(20.dp),
-        colors = CardDefaults.cardColors(Color.Transparent)
+        colors = CardDefaults.cardColors(Color.Transparent),
     ) {
         Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .background(backgroundGradient)
-                .padding(24.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .background(backgroundGradient)
+                    .padding(24.dp),
         ) {
             Column {
                 // Başlık ve durum
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         // Animated icon
                         Box(
-                            modifier = Modifier
-                                .size(40.dp)
-                                .clip(CircleShape)
-                                .background(
-                                    Brush.radialGradient(
-                                        colors = listOf(
-                                            Color(0xFF7B4397).copy(alpha = 0.2f),
-                                            Color(0xFF7B4397).copy(alpha = 0.1f)
-                                        )
-                                    )
-                                ),
-                            contentAlignment = Alignment.Center
+                            modifier =
+                                Modifier
+                                    .size(40.dp)
+                                    .clip(CircleShape)
+                                    .background(
+                                        Brush.radialGradient(
+                                            colors =
+                                                listOf(
+                                                    Color(0xFF7B4397).copy(alpha = 0.2f),
+                                                    Color(0xFF7B4397).copy(alpha = 0.1f),
+                                                ),
+                                        ),
+                                    ),
+                            contentAlignment = Alignment.Center,
                         ) {
                             Text(
                                 text = "⚙️",
-                                style = MaterialTheme.typography.titleLarge
+                                style = MaterialTheme.typography.titleLarge,
                             )
                         }
 
@@ -105,13 +112,13 @@ fun ServiceStatusCard(
                                 text = "Clipboard Servisi",
                                 style = MaterialTheme.typography.titleMedium,
                                 color = Color(0xFF2D2D2D),
-                                fontWeight = FontWeight.SemiBold
+                                fontWeight = FontWeight.SemiBold,
                             )
 
                             Text(
                                 text = if (isServiceRunning) "Aktif ve dinleniyor" else "Durduruldu",
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF666666)
+                                color = Color(0xFF666666),
                             )
                         }
                     }
@@ -119,7 +126,7 @@ fun ServiceStatusCard(
                     // Status indicator
                     StatusIndicator(
                         isActive = isServiceRunning,
-                        isLoading = isLoading
+                        isLoading = isLoading,
                     )
                 }
 
@@ -129,32 +136,36 @@ fun ServiceStatusCard(
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = Color.White.copy(alpha = 0.7f)
-                    )
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = Color.White.copy(alpha = 0.7f),
+                        ),
                 ) {
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
                         horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Column {
                             Text(
                                 text = if (isServiceRunning) "Servis Çalışıyor" else "Servis Durduruldu",
                                 style = MaterialTheme.typography.bodyMedium,
                                 fontWeight = FontWeight.Medium,
-                                color = statusColor
+                                color = statusColor,
                             )
 
                             Text(
-                                text = if (isServiceRunning)
-                                    "Tüm kopyalama işlemleri kaydediliyor"
-                                else
-                                    "Başlatmak için açın",
+                                text =
+                                    if (isServiceRunning) {
+                                        "Tüm kopyalama işlemleri kaydediliyor"
+                                    } else {
+                                        "Başlatmak için açın"
+                                    },
                                 style = MaterialTheme.typography.bodySmall,
-                                color = Color(0xFF666666)
+                                color = Color(0xFF666666),
                             )
                         }
 
@@ -163,12 +174,13 @@ fun ServiceStatusCard(
                             checked = isServiceRunning,
                             onCheckedChange = { onToggleService() },
                             enabled = !isLoading,
-                            colors = SwitchDefaults.colors(
-                                checkedThumbColor = Color.White,
-                                checkedTrackColor = Color(0xFF4CAF50),
-                                uncheckedThumbColor = Color.White,
-                                uncheckedTrackColor = Color(0xFFE0E0E0)
-                            )
+                            colors =
+                                SwitchDefaults.colors(
+                                    checkedThumbColor = Color.White,
+                                    checkedTrackColor = Color(0xFF4CAF50),
+                                    uncheckedThumbColor = Color.White,
+                                    uncheckedTrackColor = Color(0xFFE0E0E0),
+                                ),
                         )
                     }
                 }

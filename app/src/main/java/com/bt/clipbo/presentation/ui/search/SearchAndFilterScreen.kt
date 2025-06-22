@@ -39,7 +39,7 @@ import com.bt.clipbo.presentation.ui.components.ClipboardItemCard
 @Composable
 fun SearchAndFilterScreen(
     viewModel: SearchViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -52,28 +52,30 @@ fun SearchAndFilterScreen(
                     IconButton(onClick = onNavigateBack) {
                         Icon(
                             imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Geri"
+                            contentDescription = "Geri",
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
             )
-        }
+        },
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
         ) {
             // Arama çubuğu
             SearchBar(
                 query = uiState.searchQuery,
                 onQueryChange = viewModel::updateSearchQuery,
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -85,7 +87,7 @@ fun SearchAndFilterScreen(
                 onTimeFilterChange = viewModel::updateTimeFilter,
                 onTogglePinned = viewModel::toggleShowPinnedOnly,
                 onToggleSecure = viewModel::toggleShowSecureOnly,
-                onClearFilters = viewModel::clearFilters
+                onClearFilters = viewModel::clearFilters,
             )
 
             Spacer(modifier = Modifier.height(16.dp))
@@ -93,18 +95,19 @@ fun SearchAndFilterScreen(
             // Sonuç sayısı
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
+                colors =
+                    CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                    ),
             ) {
                 Row(
                     modifier = Modifier.padding(16.dp),
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "📊 ${uiState.filteredItems.size} sonuç bulundu",
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -115,7 +118,7 @@ fun SearchAndFilterScreen(
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
                 }
@@ -123,10 +126,11 @@ fun SearchAndFilterScreen(
                 EmptyResultsCard()
             } else {
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     uiState.filteredItems.forEach { item ->
                         ClipboardItemCard(
@@ -139,7 +143,7 @@ fun SearchAndFilterScreen(
                             onTogglePin = { viewModel.togglePin(item) },
                             onAssignTags = {
                                 Toast.makeText(context, "Etiketler güncellendi", Toast.LENGTH_SHORT).show()
-                            }
+                            },
                         )
                     }
                 }

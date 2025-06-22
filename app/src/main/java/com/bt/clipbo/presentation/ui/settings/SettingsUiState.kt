@@ -10,19 +10,16 @@ data class SettingsUiState(
     val autoBackupEnabled: Boolean = true,
     val localBackupCount: Int = 0,
     val appVersion: String = "1.0.0",
-
     // Dialog states
     val showMaxItemsDialog: Boolean = false,
     val showBackupProgress: Boolean = false,
     val showLocalBackupsDialog: Boolean = false,
     val showClearAllDataDialog: Boolean = false,
-
     // Backup related
     val localBackups: List<BackupInfo> = emptyList(),
     val isBackupInProgress: Boolean = false,
     val isRestoreInProgress: Boolean = false,
-
     // Messages
     val toastMessage: String? = null,
-    val isLoading: Boolean = false
+    val isLoading: Boolean = false,
 )

@@ -15,58 +15,62 @@ data class StatisticsState(
     val todayCount: Int = 0,
     val weekCount: Int = 0,
     val totalCount: Int = 0,
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
 )
 
 @HiltViewModel
-class StatisticsViewModel @Inject constructor(
-    private val clipboardUseCase: ClipboardUseCase
-) : ViewModel() {
+class StatisticsViewModel
+    @Inject
+    constructor(
+        private val clipboardUseCase: ClipboardUseCase,
+    ) : ViewModel() {
+        private val _state = MutableStateFlow(StatisticsState())
+        val state: StateFlow<StatisticsState> = _state.asStateFlow()
 
-    private val _state = MutableStateFlow(StatisticsState())
-    val state: StateFlow<StatisticsState> = _state.asStateFlow()
+        init {
+            loadStatistics()
+        }
 
-    init {
-        loadStatistics()
-    }
+        private fun loadStatistics() {
+            viewModelScope.launch {
+                try {
+                    val calendar = Calendar.getInstance()
+                    val startOfDay =
+                        calendar.apply {
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
 
-    private fun loadStatistics() {
-        viewModelScope.launch {
-            try {
-                val calendar = Calendar.getInstance()
-                val startOfDay = calendar.apply {
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
+                    val startOfWeek =
+                        calendar.apply {
+                            set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.timeInMillis
 
-                val startOfWeek = calendar.apply {
-                    set(Calendar.DAY_OF_WEEK, calendar.firstDayOfWeek)
-                    set(Calendar.HOUR_OF_DAY, 0)
-                    set(Calendar.MINUTE, 0)
-                    set(Calendar.SECOND, 0)
-                    set(Calendar.MILLISECOND, 0)
-                }.timeInMillis
+                    clipboardUseCase.getAllItems().collect { items ->
+                        val todayItems = items.filter { it.timestamp >= startOfDay }
+                        val weekItems = items.filter { it.timestamp >= startOfWeek }
 
-                clipboardUseCase.getAllItems().collect { items ->
-                    val todayItems = items.filter { it.timestamp >= startOfDay }
-                    val weekItems = items.filter { it.timestamp >= startOfWeek }
-
-                    _state.value = StatisticsState(
-                        todayCount = todayItems.size,
-                        weekCount = weekItems.size,
-                        totalCount = items.size,
-                        isLoading = false
-                    )
+                        _state.value =
+                            StatisticsState(
+                                todayCount = todayItems.size,
+                                weekCount = weekItems.size,
+                                totalCount = items.size,
+                                isLoading = false,
+                            )
+                    }
+                } catch (e: Exception) {
+                    _state.value = StatisticsState(isLoading = false)
                 }
-            } catch (e: Exception) {
-                _state.value = StatisticsState(isLoading = false)
             }
         }
-    }
 
-    fun refreshStatistics() {
-        loadStatistics()
+        fun refreshStatistics() {
+            loadStatistics()
+        }
     }
-} 

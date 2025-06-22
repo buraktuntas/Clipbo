@@ -15,7 +15,7 @@ import com.bt.clipbo.presentation.ui.tags.TagManagementScreen
 @Composable
 fun ClipboApp(
     onStartService: () -> Unit = {},
-    onStopService: () -> Unit = {}
+    onStopService: () -> Unit = {},
 ) {
     var currentScreen by remember { mutableStateOf<Screen>(Screen.Navigation) }
 
@@ -28,37 +28,37 @@ fun ClipboApp(
                 onNavigateToSecure = { currentScreen = Screen.Secure },
                 onNavigateToSettings = { currentScreen = Screen.Settings },
                 onStartService = onStartService,
-                onStopService = onStopService
+                onStopService = onStopService,
             )
         }
 
         Screen.History -> {
             HistoryScreen(
-                onNavigateBack = { currentScreen = Screen.Navigation }
+                onNavigateBack = { currentScreen = Screen.Navigation },
             )
         }
 
         Screen.Search -> {
             SearchAndFilterScreen(
-                onNavigateBack = { currentScreen = Screen.Navigation }
+                onNavigateBack = { currentScreen = Screen.Navigation },
             )
         }
 
         Screen.Tags -> {
             TagManagementScreen(
-                onNavigateBack = { currentScreen = Screen.Navigation }
+                onNavigateBack = { currentScreen = Screen.Navigation },
             )
         }
 
         Screen.Secure -> {
             SecureClipboardScreen(
-                onNavigateBack = { currentScreen = Screen.Navigation }
+                onNavigateBack = { currentScreen = Screen.Navigation },
             )
         }
 
         Screen.Settings -> {
             SettingsScreen(
-                onNavigateBack = { currentScreen = Screen.Navigation }
+                onNavigateBack = { currentScreen = Screen.Navigation },
             )
         }
     }

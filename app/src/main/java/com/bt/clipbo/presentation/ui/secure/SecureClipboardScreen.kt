@@ -1,7 +1,5 @@
 package com.bt.clipbo.presentation.ui.secure
 
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,7 +11,6 @@ import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
@@ -34,7 +31,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun SecureClipboardScreen(
     viewModel: SecureClipboardViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -50,7 +47,7 @@ fun SecureClipboardScreen(
             TopAppBar(
                 title = {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text("🔒")
                         Spacer(modifier = Modifier.width(8.dp))
@@ -69,14 +66,15 @@ fun SecureClipboardScreen(
                         }
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = Color(0xFF1A237E), // Koyu mavi güvenlik rengi
-                    titleContentColor = Color.White,
-                    navigationIconContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF1A237E), // Koyu mavi güvenlik rengi
+                        titleContentColor = Color.White,
+                        navigationIconContentColor = Color.White,
+                        actionIconContentColor = Color.White,
+                    ),
             )
-        }
+        },
     ) { paddingValues ->
 
         // Kimlik doğrulama ekranı
@@ -93,13 +91,14 @@ fun SecureClipboardScreen(
                             },
                             onError = { error ->
                                 android.widget.Toast.makeText(context, "❌ $error", android.widget.Toast.LENGTH_LONG).show()
-                            }
+                            },
                         )
                     }
                 },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
             )
         } else {
             // Güvenli içerikler ekranı
@@ -112,9 +111,10 @@ fun SecureClipboardScreen(
                 onDeleteItem = { viewModel.deleteItem(it) },
                 onTogglePin = { viewModel.togglePin(it) },
                 onToggleSecure = { viewModel.toggleSecureMode(it) },
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(paddingValues),
             )
         }
     }

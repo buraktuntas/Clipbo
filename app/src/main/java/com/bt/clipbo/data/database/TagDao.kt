@@ -5,7 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface TagDao {
-
     @Query("SELECT * FROM tags ORDER BY usage_count DESC")
     fun getAllTags(): Flow<List<TagEntity>>
 

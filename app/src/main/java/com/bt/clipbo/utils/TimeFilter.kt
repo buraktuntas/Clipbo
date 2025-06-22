@@ -5,5 +5,5 @@ enum class TimeFilter(val displayName: String) {
     LAST_HOUR("Son 1 Saat"),
     TODAY("Bugün"),
     LAST_WEEK("Son Hafta"),
-    LAST_MONTH("Son Ay")
+    LAST_MONTH("Son Ay"),
 }

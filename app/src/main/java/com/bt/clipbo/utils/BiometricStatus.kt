@@ -7,5 +7,5 @@ enum class BiometricStatus {
     NONE_ENROLLED,
     SECURITY_UPDATE_REQUIRED,
     UNSUPPORTED,
-    UNKNOWN
+    UNKNOWN,
 }

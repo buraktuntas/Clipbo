@@ -1,6 +1,5 @@
 package com.bt.clipbo.presentation.ui.components
 
-
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -20,15 +19,16 @@ fun SafeClipboardList(
     onDelete: (ClipboardEntity) -> Unit,
     onTogglePin: (ClipboardEntity) -> Unit,
     onAssignTags: (ClipboardEntity) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     // Her filtre için ayrı state
     val listStates = remember { mutableMapOf<String, LazyListState>() }
 
     // Mevcut filtre için state al veya oluştur
-    val currentListState = remember(selectedFilter) {
-        listStates.getOrPut(selectedFilter) { LazyListState() }
-    }
+    val currentListState =
+        remember(selectedFilter) {
+            listStates.getOrPut(selectedFilter) { LazyListState() }
+        }
 
     // Lista değiştiğinde yukarı kaydır
     LaunchedEffect(selectedFilter, items.size) {
@@ -51,11 +51,11 @@ fun SafeClipboardList(
         // Geçiş sırasında basit loading
         Box(
             modifier = modifier.fillMaxSize(),
-            contentAlignment = androidx.compose.ui.Alignment.Center
+            contentAlignment = androidx.compose.ui.Alignment.Center,
         ) {
             CircularProgressIndicator(
                 modifier = Modifier.size(24.dp),
-                strokeWidth = 2.dp
+                strokeWidth = 2.dp,
             )
         }
     } else {
@@ -63,18 +63,18 @@ fun SafeClipboardList(
             state = currentListState,
             modifier = modifier.fillMaxSize(),
             contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
             items(
                 items = items,
-                key = { "${selectedFilter}_${it.id}_${it.timestamp}" } // Unique key
+                key = { "${selectedFilter}_${it.id}_${it.timestamp}" }, // Unique key
             ) { item ->
                 ClipboardItemCard(
                     item = item,
                     onCopy = { onCopy(item) },
                     onDelete = { onDelete(item) },
                     onTogglePin = { onTogglePin(item) },
-                    onAssignTags = { onAssignTags(item) }
+                    onAssignTags = { onAssignTags(item) },
                 )
             }
 

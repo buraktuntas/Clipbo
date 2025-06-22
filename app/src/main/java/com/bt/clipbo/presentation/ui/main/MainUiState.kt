@@ -4,5 +4,5 @@ import com.bt.clipbo.data.database.ClipboardEntity
 
 data class MainUiState(
     val clipboardItems: List<ClipboardEntity> = emptyList(),
-    val isLoading: Boolean = true
+    val isLoading: Boolean = true,
 )

@@ -36,38 +36,40 @@ fun SecureClipboardItemCard(
     onCopy: () -> Unit,
     onDelete: () -> Unit,
     onTogglePin: () -> Unit,
-    onToggleSecure: () -> Unit
+    onToggleSecure: () -> Unit,
 ) {
     Card(
         modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1A237E).copy(alpha = 0.05f)
-        ),
+        colors =
+            CardDefaults.cardColors(
+                containerColor = Color(0xFF1A237E).copy(alpha = 0.05f),
+            ),
         shape = RoundedCornerShape(12.dp),
-        onClick = onCopy
+        onClick = onCopy,
     ) {
         Column(
-            modifier = Modifier.padding(16.dp)
+            modifier = Modifier.padding(16.dp),
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.Top,
             ) {
                 Column(
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         Text(
-                            text = when (item.type) {
-                                "PASSWORD" -> "🔒"
-                                "PIN" -> "🔢"
-                                "IBAN" -> "🏦"
-                                else -> "🔐"
-                            },
-                            style = MaterialTheme.typography.titleMedium
+                            text =
+                                when (item.type) {
+                                    "PASSWORD" -> "🔒"
+                                    "PIN" -> "🔢"
+                                    "IBAN" -> "🏦"
+                                    else -> "🔐"
+                                },
+                            style = MaterialTheme.typography.titleMedium,
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
@@ -75,7 +77,7 @@ fun SecureClipboardItemCard(
                         Text(
                             text = item.type,
                             style = MaterialTheme.typography.labelMedium,
-                            color = Color(0xFF1A237E)
+                            color = Color(0xFF1A237E),
                         )
 
                         if (item.isPinned) {
@@ -91,7 +93,7 @@ fun SecureClipboardItemCard(
                         text = "•".repeat(minOf(item.content.length, 12)),
                         style = MaterialTheme.typography.bodyLarge,
                         color = MaterialTheme.colorScheme.onSurface,
-                        letterSpacing = androidx.compose.ui.unit.TextUnit.Unspecified
+                        letterSpacing = androidx.compose.ui.unit.TextUnit.Unspecified,
                     )
 
                     Spacer(modifier = Modifier.height(4.dp))
@@ -99,7 +101,7 @@ fun SecureClipboardItemCard(
                     Text(
                         text = "🕐 ${formatTime(item.timestamp)}",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -108,7 +110,7 @@ fun SecureClipboardItemCard(
                         Icon(
                             if (item.isPinned) Icons.Default.PushPin else Icons.Default.PinDrop,
                             contentDescription = if (item.isPinned) "Sabitlemeyi kaldır" else "Sabitle",
-                            tint = if (item.isPinned) Color(0xFF1A237E) else MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = if (item.isPinned) Color(0xFF1A237E) else MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
@@ -116,7 +118,7 @@ fun SecureClipboardItemCard(
                         Icon(
                             Icons.Default.LockOpen,
                             contentDescription = "Güvenlik modundan çıkar",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
 
@@ -125,7 +127,7 @@ fun SecureClipboardItemCard(
                             Icon(
                                 Icons.Default.Delete,
                                 contentDescription = "Sil",
-                                tint = MaterialTheme.colorScheme.error
+                                tint = MaterialTheme.colorScheme.error,
                             )
                         }
                     }

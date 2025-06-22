@@ -47,7 +47,7 @@ import com.bt.clipbo.ui.theme.ClipboTheme
 fun MainScreen(
     viewModel: MainViewModel = hiltViewModel(),
     onStartService: () -> Unit = {},
-    onStopService: () -> Unit = {}
+    onStopService: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
@@ -56,27 +56,29 @@ fun MainScreen(
         topBar = {
             TopAppBar(
                 title = { Text("📋 Clipbo") },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
             )
-        }
+        },
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .padding(16.dp),
         ) {
             // Servis kontrol butonları
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 Button(
                     onClick = onStartService,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Icon(Icons.Default.PlayArrow, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -85,7 +87,7 @@ fun MainScreen(
 
                 OutlinedButton(
                     onClick = onStopService,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.weight(1f),
                 ) {
                     Icon(Icons.Default.Star, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
@@ -98,21 +100,21 @@ fun MainScreen(
             // Clipboard geçmişi başlığı
             Card(
                 modifier = Modifier.fillMaxWidth(),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp)
+                    modifier = Modifier.padding(16.dp),
                 ) {
                     Text(
                         text = "📋 Clipboard Geçmişi",
                         style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface
+                        color = MaterialTheme.colorScheme.onSurface,
                     )
 
                     Text(
                         text = "${uiState.clipboardItems.size} öğe",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             }
@@ -123,26 +125,28 @@ fun MainScreen(
             if (uiState.isLoading) {
                 Box(
                     modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.Center
+                    contentAlignment = Alignment.Center,
                 ) {
                     CircularProgressIndicator()
                 }
             } else if (uiState.clipboardItems.isEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+                        ),
                 ) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(24.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                     ) {
                         Text(
                             text = "📝",
-                            style = MaterialTheme.typography.displayMedium
+                            style = MaterialTheme.typography.displayMedium,
                         )
 
                         Spacer(modifier = Modifier.height(8.dp))
@@ -150,23 +154,24 @@ fun MainScreen(
                         Text(
                             text = "Henüz kopyalanan öğe yok",
                             style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
 
                         Text(
                             text = "Herhangi bir metni kopyaladığınızda burada görünecek",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
                     }
                 }
             } else {
                 // ScrollView ile basit liste (LazyColumn yerine)
                 Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier =
+                        Modifier
+                            .fillMaxWidth()
+                            .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
                 ) {
                     uiState.clipboardItems.forEach { item ->
                         ClipboardItemCard(
@@ -177,7 +182,7 @@ fun MainScreen(
                             },
                             onDelete = { viewModel.deleteItem(item) },
                             onTogglePin = { viewModel.togglePin(item) },
-                            onAssignTags = {}
+                            onAssignTags = {},
                         )
                     }
                 }
@@ -194,38 +199,40 @@ fun MainScreenPreview() {
         Surface {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 ClipboardItemCard(
-                    item = ClipboardEntity(
-                        id = 1,
-                        content = "https://github.com/clipbo/android",
-                        timestamp = System.currentTimeMillis() - 300_000,
-                        type = "URL",
-                        isPinned = true,
-                        isSecure = false,
-                        preview = "https://github.com/clipbo/android"
-                    ),
+                    item =
+                        ClipboardEntity(
+                            id = 1,
+                            content = "https://github.com/clipbo/android",
+                            timestamp = System.currentTimeMillis() - 300_000,
+                            type = "URL",
+                            isPinned = true,
+                            isSecure = false,
+                            preview = "https://github.com/clipbo/android",
+                        ),
                     onCopy = {},
                     onDelete = {},
                     onTogglePin = {},
-                    onAssignTags = {}
+                    onAssignTags = {},
                 )
 
                 ClipboardItemCard(
-                    item = ClipboardEntity(
-                        id = 2,
-                        content = "MySecretPassword123!",
-                        timestamp = System.currentTimeMillis() - 600_000,
-                        type = "PASSWORD",
-                        isPinned = false,
-                        isSecure = true,
-                        preview = "MySecretPassword123!"
-                    ),
+                    item =
+                        ClipboardEntity(
+                            id = 2,
+                            content = "MySecretPassword123!",
+                            timestamp = System.currentTimeMillis() - 600_000,
+                            type = "PASSWORD",
+                            isPinned = false,
+                            isSecure = true,
+                            preview = "MySecretPassword123!",
+                        ),
                     onCopy = {},
                     onDelete = {},
                     onTogglePin = {},
-                    onAssignTags = {}
+                    onAssignTags = {},
                 )
             }
         }

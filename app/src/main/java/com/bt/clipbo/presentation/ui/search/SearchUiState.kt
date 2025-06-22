@@ -12,5 +12,5 @@ data class SearchUiState(
     val filteredItems: List<ClipboardEntity> = emptyList(),
     val isLoading: Boolean = true,
     val error: String? = null,
-    val isRefreshing: Boolean = false
+    val isRefreshing: Boolean = false,
 )

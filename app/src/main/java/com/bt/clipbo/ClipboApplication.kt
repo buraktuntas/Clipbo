@@ -8,7 +8,6 @@ import javax.inject.Inject
 
 @HiltAndroidApp
 class ClipboApplication : Application() {
-
     @Inject
     lateinit var widgetRepository: WidgetRepository
 

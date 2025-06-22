@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.dp
 fun MaxItemsDialog(
     currentValue: Int,
     onDismiss: () -> Unit,
-    onConfirm: (Int) -> Unit
+    onConfirm: (Int) -> Unit,
 ) {
     var selectedValue by remember { mutableStateOf(currentValue) }
     val options = listOf(50, 100, 200, 500, 1000)
@@ -38,26 +38,27 @@ fun MaxItemsDialog(
                 Text(
                     text = "Clipboard geçmişinde en fazla kaç öğe saklanacağını seçin:",
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    modifier = Modifier.padding(bottom = 16.dp),
                 )
 
                 options.forEach { value ->
                     Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp),
-                        verticalAlignment = Alignment.CenterVertically
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically,
                     ) {
                         RadioButton(
                             selected = selectedValue == value,
-                            onClick = { selectedValue = value }
+                            onClick = { selectedValue = value },
                         )
 
                         Spacer(modifier = Modifier.width(8.dp))
 
                         Text(
                             text = "$value öğe",
-                            style = MaterialTheme.typography.bodyMedium
+                            style = MaterialTheme.typography.bodyMedium,
                         )
                     }
                 }
@@ -65,7 +66,7 @@ fun MaxItemsDialog(
         },
         confirmButton = {
             Button(
-                onClick = { onConfirm(selectedValue) }
+                onClick = { onConfirm(selectedValue) },
             ) {
                 Text("Tamam")
             }
@@ -74,6 +75,6 @@ fun MaxItemsDialog(
             TextButton(onClick = onDismiss) {
                 Text("İptal")
             }
-        }
+        },
     )
 }

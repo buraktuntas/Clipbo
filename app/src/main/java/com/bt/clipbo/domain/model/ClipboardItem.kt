@@ -1,6 +1,5 @@
 package com.bt.clipbo.domain.model
 
-
 import com.bt.clipbo.data.database.ClipboardEntity
 import java.text.SimpleDateFormat
 import java.util.*
@@ -17,9 +16,8 @@ data class ClipboardItem(
     val isPinned: Boolean,
     val isSecure: Boolean,
     val tags: List<String>,
-    val preview: String
+    val preview: String,
 ) {
-
     enum class ClipboardType(val displayName: String, val icon: String) {
         TEXT("Metin", "📝"),
         URL("Link", "🔗"),
@@ -28,7 +26,8 @@ data class ClipboardItem(
         PASSWORD("Şifre", "🔒"),
         IBAN("IBAN", "🏦"),
         PIN("PIN", "🔢"),
-        ADDRESS("Adres", "📍");
+        ADDRESS("Adres", "📍"),
+        ;
 
         companion object {
             fun fromString(type: String): ClipboardType {
@@ -72,8 +71,8 @@ data class ClipboardItem(
 
         val searchQuery = query.lowercase()
         return content.lowercase().contains(searchQuery) ||
-                type.displayName.lowercase().contains(searchQuery) ||
-                tags.any { it.lowercase().contains(searchQuery) }
+            type.displayName.lowercase().contains(searchQuery) ||
+            tags.any { it.lowercase().contains(searchQuery) }
     }
 
     /**
@@ -96,7 +95,7 @@ data class ClipboardItem(
                 isPinned = entity.isPinned,
                 isSecure = entity.isSecure,
                 tags = entity.tags.split(",").filter { it.isNotBlank() },
-                preview = entity.preview
+                preview = entity.preview,
             )
         }
 
@@ -112,7 +111,7 @@ data class ClipboardItem(
                 isPinned = item.isPinned,
                 isSecure = item.isSecure,
                 tags = item.tags.joinToString(","),
-                preview = item.preview.ifEmpty { item.content.take(100) }
+                preview = item.preview.ifEmpty { item.content.take(100) },
             )
         }
     }

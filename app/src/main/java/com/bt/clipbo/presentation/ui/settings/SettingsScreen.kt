@@ -6,7 +6,6 @@ import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -16,7 +15,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.bt.clipbo.presentation.ui.components.BackupProgressDialog
@@ -25,23 +23,25 @@ import com.bt.clipbo.presentation.ui.components.BackupProgressDialog
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit = {}
+    onNavigateBack: () -> Unit = {},
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val context = LocalContext.current
 
     // File picker launchers
-    val exportLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.CreateDocument("application/json")
-    ) { uri ->
-        uri?.let { viewModel.exportBackup(it) }
-    }
+    val exportLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.CreateDocument("application/json"),
+        ) { uri ->
+            uri?.let { viewModel.exportBackup(it) }
+        }
 
-    val importLauncher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument()
-    ) { uri ->
-        uri?.let { viewModel.importBackup(it) }
-    }
+    val importLauncher =
+        rememberLauncherForActivityResult(
+            contract = ActivityResultContracts.OpenDocument(),
+        ) { uri ->
+            uri?.let { viewModel.importBackup(it) }
+        }
 
     Scaffold(
         topBar = {
@@ -52,22 +52,23 @@ fun SettingsScreen(
                         Icon(Icons.Default.ArrowBack, contentDescription = "Geri")
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                )
+                colors =
+                    TopAppBarDefaults.topAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer,
+                        titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+                    ),
             )
-        }
+        },
     ) { paddingValues ->
         Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(paddingValues)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
-
             // Genel Ayarlar
             SettingsSection(title = "🎛️ Genel Ayarlar") {
                 SettingsItem(
@@ -77,9 +78,9 @@ fun SettingsScreen(
                     trailing = {
                         Switch(
                             checked = uiState.isDarkTheme,
-                            onCheckedChange = { viewModel.toggleDarkTheme() }
+                            onCheckedChange = { viewModel.toggleDarkTheme() },
                         )
-                    }
+                    },
                 )
 
                 SettingsItem(
@@ -89,9 +90,9 @@ fun SettingsScreen(
                     trailing = {
                         Switch(
                             checked = uiState.autoStartService,
-                            onCheckedChange = { viewModel.toggleAutoStartService() }
+                            onCheckedChange = { viewModel.toggleAutoStartService() },
                         )
-                    }
+                    },
                 )
 
                 SettingsItem(
@@ -103,9 +104,9 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
+                    },
                 )
             }
 
@@ -118,9 +119,9 @@ fun SettingsScreen(
                     trailing = {
                         Switch(
                             checked = uiState.enableSecureMode,
-                            onCheckedChange = { viewModel.toggleSecureMode() }
+                            onCheckedChange = { viewModel.toggleSecureMode() },
                         )
-                    }
+                    },
                 )
 
                 SettingsItem(
@@ -132,9 +133,9 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
+                    },
                 )
             }
 
@@ -151,9 +152,9 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
-                    }
+                    },
                 )
 
                 SettingsItem(
@@ -167,9 +168,9 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.ChevronRight,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.primary
+                            tint = MaterialTheme.colorScheme.primary,
                         )
-                    }
+                    },
                 )
 
                 SettingsItem(
@@ -179,36 +180,40 @@ fun SettingsScreen(
                     onClick = { viewModel.showLocalBackupsDialog() },
                     trailing = {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             if (uiState.localBackupCount > 0) {
                                 Text(
                                     text = "${uiState.localBackupCount}",
                                     style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.primary
+                                    color = MaterialTheme.colorScheme.primary,
                                 )
                                 Spacer(modifier = Modifier.width(4.dp))
                             }
                             Icon(
                                 Icons.Default.ChevronRight,
                                 contentDescription = null,
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
-                    }
+                    },
                 )
 
                 SettingsItem(
                     title = "Otomatik Yedekleme",
-                    description = if (uiState.autoBackupEnabled) "Günlük otomatik yedek oluşturuluyor"
-                    else "Otomatik yedekleme kapalı",
+                    description =
+                        if (uiState.autoBackupEnabled) {
+                            "Günlük otomatik yedek oluşturuluyor"
+                        } else {
+                            "Otomatik yedekleme kapalı"
+                        },
                     icon = Icons.Default.Schedule,
                     trailing = {
                         Switch(
                             checked = uiState.autoBackupEnabled,
-                            onCheckedChange = { viewModel.toggleAutoBackup() }
+                            onCheckedChange = { viewModel.toggleAutoBackup() },
                         )
-                    }
+                    },
                 )
 
                 Divider(modifier = Modifier.padding(vertical = 8.dp))
@@ -223,9 +228,9 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.Warning,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.error
+                            tint = MaterialTheme.colorScheme.error,
                         )
-                    }
+                    },
                 )
             }
 
@@ -233,36 +238,37 @@ fun SettingsScreen(
             SettingsSection(title = "⭐ Premium") {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.tertiaryContainer
-                    )
+                    colors =
+                        CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                        ),
                 ) {
                     Column(
-                        modifier = Modifier.padding(16.dp)
+                        modifier = Modifier.padding(16.dp),
                     ) {
                         Row(
-                            verticalAlignment = Alignment.CenterVertically
+                            verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Text(
                                 text = "⭐",
-                                style = MaterialTheme.typography.headlineMedium
+                                style = MaterialTheme.typography.headlineMedium,
                             )
 
                             Spacer(modifier = Modifier.width(12.dp))
 
                             Column(
-                                modifier = Modifier.weight(1f)
+                                modifier = Modifier.weight(1f),
                             ) {
                                 Text(
                                     text = "Premium'a Geçin",
                                     style = MaterialTheme.typography.titleMedium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 )
 
                                 Text(
                                     text = "Sınırsız etiket, cloud sync ve daha fazlası",
                                     style = MaterialTheme.typography.bodyMedium,
-                                    color = MaterialTheme.colorScheme.onTertiaryContainer
+                                    color = MaterialTheme.colorScheme.onTertiaryContainer,
                                 )
                             }
                         }
@@ -271,7 +277,7 @@ fun SettingsScreen(
 
                         Button(
                             onClick = { /* Premium satın alma */ },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
                         ) {
                             Text("₺40 - Premium Satın Al")
                         }
@@ -285,7 +291,7 @@ fun SettingsScreen(
                     title = "Sürüm",
                     description = "Clipbo v${uiState.appVersion}",
                     icon = Icons.Default.Info,
-                    onClick = { /* Version info */ }
+                    onClick = { /* Version info */ },
                 )
 
                 SettingsItem(
@@ -300,9 +306,9 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.OpenInNew,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
+                    },
                 )
 
                 SettingsItem(
@@ -317,9 +323,9 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.OpenInNew,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
+                    },
                 )
 
                 SettingsItem(
@@ -327,19 +333,20 @@ fun SettingsScreen(
                     description = "Yardım almak için bize yazın",
                     icon = Icons.Default.Support,
                     onClick = {
-                        val intent = Intent(Intent.ACTION_SENDTO).apply {
-                            data = Uri.parse("mailto:support@clipbo.app")
-                            putExtra(Intent.EXTRA_SUBJECT, "Clipbo Destek")
-                        }
+                        val intent =
+                            Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:support@clipbo.app")
+                                putExtra(Intent.EXTRA_SUBJECT, "Clipbo Destek")
+                            }
                         context.startActivity(intent)
                     },
                     trailing = {
                         Icon(
                             Icons.Default.OpenInNew,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
+                    },
                 )
 
                 SettingsItem(
@@ -354,9 +361,9 @@ fun SettingsScreen(
                         Icon(
                             Icons.Default.OpenInNew,
                             contentDescription = null,
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant,
                         )
-                    }
+                    },
                 )
             }
         }
@@ -370,14 +377,14 @@ fun SettingsScreen(
             onConfirm = { newValue ->
                 viewModel.setMaxHistoryItems(newValue)
                 viewModel.hideMaxItemsDialog()
-            }
+            },
         )
     }
 
     if (uiState.showBackupProgress) {
         BackupProgressDialog(
             backupRestoreManager = viewModel.getBackupRestoreManager(),
-            onDismiss = { viewModel.hideBackupProgress() }
+            onDismiss = { viewModel.hideBackupProgress() },
         )
     }
 
@@ -390,7 +397,7 @@ fun SettingsScreen(
             },
             onDeleteBackup = { backupInfo ->
                 viewModel.deleteLocalBackup(backupInfo)
-            }
+            },
         )
     }
 
@@ -401,7 +408,7 @@ fun SettingsScreen(
             title = { Text("⚠️ Tüm Verileri Sil") },
             text = {
                 Text(
-                    "Bu işlem geri alınamaz!\n\nTüm clipboard geçmişi, etiketler ve ayarlar kalıcı olarak silinecek.\n\nDevam etmek istediğinizden emin misiniz?"
+                    "Bu işlem geri alınamaz!\n\nTüm clipboard geçmişi, etiketler ve ayarlar kalıcı olarak silinecek.\n\nDevam etmek istediğinizden emin misiniz?",
                 )
             },
             confirmButton = {
@@ -410,9 +417,10 @@ fun SettingsScreen(
                         viewModel.clearAllData()
                         viewModel.hideClearAllDataDialog()
                     },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.error
-                    )
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.error,
+                        ),
                 ) {
                     Text("Evet, Tümünü Sil")
                 }
@@ -421,7 +429,7 @@ fun SettingsScreen(
                 TextButton(onClick = { viewModel.hideClearAllDataDialog() }) {
                     Text("İptal")
                 }
-            }
+            },
         )
     }
 

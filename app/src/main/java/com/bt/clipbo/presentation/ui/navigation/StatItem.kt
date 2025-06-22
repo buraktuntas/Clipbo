@@ -9,21 +9,25 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 
 @Composable
-fun StatItem(label: String, value: String, textColor: Color) {
+fun StatItem(
+    label: String,
+    value: String,
+    textColor: Color,
+) {
     Column(
-        horizontalAlignment = Alignment.CenterHorizontally
+        horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(
             text = value,
             style = MaterialTheme.typography.headlineMedium,
             color = textColor,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
         )
 
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
-            color = textColor
+            color = textColor,
         )
     }
 }

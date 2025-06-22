@@ -23,7 +23,7 @@ fun LocalBackupsDialog(
     localBackups: List<BackupInfo>,
     onDismiss: () -> Unit,
     onRestoreBackup: (BackupInfo) -> Unit,
-    onDeleteBackup: (BackupInfo) -> Unit
+    onDeleteBackup: (BackupInfo) -> Unit,
 ) {
     var selectedBackup by remember { mutableStateOf<BackupInfo?>(null) }
     var showDeleteConfirmation by remember { mutableStateOf(false) }
@@ -31,36 +31,39 @@ fun LocalBackupsDialog(
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
-            modifier = Modifier
-                .fillMaxWidth()
-                .fillMaxHeight(0.8f),
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.8f),
             shape = RoundedCornerShape(16.dp),
-            colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surface
-            )
+            colors =
+                CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                ),
         ) {
             Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp)
+                modifier =
+                    Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
             ) {
                 // Header
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                    verticalAlignment = Alignment.CenterVertically,
                 ) {
                     Text(
                         text = "📁 Yerel Yedekler",
                         style = MaterialTheme.typography.headlineSmall,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.Bold,
                     )
 
                     IconButton(onClick = onDismiss) {
                         Icon(
                             Icons.Default.Close,
                             contentDescription = "Kapat",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            tint = MaterialTheme.colorScheme.onSurface,
                         )
                     }
                 }
@@ -71,7 +74,7 @@ fun LocalBackupsDialog(
                 Text(
                     text = "${localBackups.size} adet yerel yedek bulundu",
                     style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -80,37 +83,38 @@ fun LocalBackupsDialog(
                 if (localBackups.isEmpty()) {
                     // Empty state
                     Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        contentAlignment = Alignment.Center
+                        modifier =
+                            Modifier
+                                .fillMaxWidth()
+                                .weight(1f),
+                        contentAlignment = Alignment.Center,
                     ) {
                         Column(
-                            horizontalAlignment = Alignment.CenterHorizontally
+                            horizontalAlignment = Alignment.CenterHorizontally,
                         ) {
                             Icon(
                                 Icons.Default.FolderOpen,
                                 contentDescription = null,
                                 modifier = Modifier.size(64.dp),
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Spacer(modifier = Modifier.height(16.dp))
                             Text(
                                 text = "Henüz yerel yedek bulunmuyor",
                                 style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                             Text(
                                 text = "Otomatik yedekleme aktif olduğunda\nyedekler burada görünecek",
                                 style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
                             )
                         }
                     }
                 } else {
                     LazyColumn(
                         modifier = Modifier.weight(1f),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         items(localBackups) { backup ->
                             BackupItem(
@@ -122,7 +126,7 @@ fun LocalBackupsDialog(
                                 onDelete = {
                                     selectedBackup = backup
                                     showDeleteConfirmation = true
-                                }
+                                },
                             )
                         }
                     }
@@ -134,10 +138,11 @@ fun LocalBackupsDialog(
                 Button(
                     onClick = onDismiss,
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                        contentColor = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
+                    colors =
+                        ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                            contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                        ),
                 ) {
                     Text("Kapat")
                 }
@@ -153,7 +158,7 @@ fun LocalBackupsDialog(
             title = { Text("Yedek Silinsin mi?") },
             text = {
                 Text(
-                    "\"${selectedBackup!!.fileName}\" adlı yedek dosyası kalıcı olarak silinecek.\n\nBu işlem geri alınamaz!"
+                    "\"${selectedBackup!!.fileName}\" adlı yedek dosyası kalıcı olarak silinecek.\n\nBu işlem geri alınamaz!",
                 )
             },
             confirmButton = {
@@ -163,9 +168,10 @@ fun LocalBackupsDialog(
                         showDeleteConfirmation = false
                         selectedBackup = null
                     },
-                    colors = ButtonDefaults.textButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
+                    colors =
+                        ButtonDefaults.textButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
                 ) {
                     Text("Sil")
                 }
@@ -175,11 +181,11 @@ fun LocalBackupsDialog(
                     onClick = {
                         showDeleteConfirmation = false
                         selectedBackup = null
-                    }
+                    },
                 ) {
                     Text("İptal")
                 }
-            }
+            },
         )
     }
 
@@ -195,17 +201,17 @@ fun LocalBackupsDialog(
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "• ${selectedBackup!!.itemCount} clipboard öğesi",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     Text(
                         "• ${selectedBackup!!.tagCount} etiket",
-                        style = MaterialTheme.typography.bodySmall
+                        style = MaterialTheme.typography.bodySmall,
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         "Mevcut veriler değiştirilmeyecek, sadece yeni veriler eklenecek.",
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
             },
@@ -215,7 +221,7 @@ fun LocalBackupsDialog(
                         selectedBackup?.let { onRestoreBackup(it) }
                         showRestoreConfirmation = false
                         selectedBackup = null
-                    }
+                    },
                 ) {
                     Text("Geri Yükle")
                 }
@@ -225,11 +231,11 @@ fun LocalBackupsDialog(
                     onClick = {
                         showRestoreConfirmation = false
                         selectedBackup = null
-                    }
+                    },
                 ) {
                     Text("İptal")
                 }
-            }
+            },
         )
     }
 }
@@ -238,38 +244,42 @@ fun LocalBackupsDialog(
 private fun BackupItem(
     backup: BackupInfo,
     onRestore: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
 ) {
     val dateFormat = remember { SimpleDateFormat("dd.MM.yyyy HH:mm", Locale.getDefault()) }
-    val formattedDate = remember(backup.createdAt) {
-        dateFormat.format(Date(backup.createdAt))
-    }
-
-    val sizeText = remember(backup.size) {
-        when {
-            backup.size < 1024 -> "${backup.size} B"
-            backup.size < 1024 * 1024 -> "${backup.size / 1024} KB"
-            else -> "${backup.size / (1024 * 1024)} MB"
+    val formattedDate =
+        remember(backup.createdAt) {
+            dateFormat.format(Date(backup.createdAt))
         }
-    }
+
+    val sizeText =
+        remember(backup.size) {
+            when {
+                backup.size < 1024 -> "${backup.size} B"
+                backup.size < 1024 * 1024 -> "${backup.size / 1024} KB"
+                else -> "${backup.size / (1024 * 1024)} MB"
+            }
+        }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant
-        )
+        colors =
+            CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            ),
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier =
+                Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp),
         ) {
             // File name and date
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -277,12 +287,12 @@ private fun BackupItem(
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.Medium,
                         maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
+                        overflow = TextOverflow.Ellipsis,
                     )
                     Text(
                         text = formattedDate,
                         style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
 
@@ -291,7 +301,7 @@ private fun BackupItem(
                         Icons.Default.Lock,
                         contentDescription = "Şifreli",
                         modifier = Modifier.size(20.dp),
-                        tint = MaterialTheme.colorScheme.primary
+                        tint = MaterialTheme.colorScheme.primary,
                     )
                 }
             }
@@ -301,17 +311,17 @@ private fun BackupItem(
             // Backup info
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.SpaceBetween,
             ) {
                 Text(
                     text = "${backup.itemCount} öğe • ${backup.tagCount} etiket",
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
                     text = sizeText,
                     style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
 
@@ -320,19 +330,20 @@ private fun BackupItem(
             // Action buttons
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
             ) {
                 OutlinedButton(
                     onClick = onRestore,
                     modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
-                    )
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.primary,
+                        ),
                 ) {
                     Icon(
                         Icons.Default.Restore,
                         contentDescription = null,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text("Geri Yükle")
@@ -340,14 +351,15 @@ private fun BackupItem(
 
                 OutlinedButton(
                     onClick = onDelete,
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.error
-                    )
+                    colors =
+                        ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error,
+                        ),
                 ) {
                     Icon(
                         Icons.Default.Delete,
                         contentDescription = "Sil",
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(18.dp),
                     )
                 }
             }

@@ -1,7 +1,6 @@
 package com.bt.clipbo.data.service
 
 import android.app.Service
-import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
 import android.content.Intent
@@ -23,7 +22,6 @@ import javax.inject.Inject
 
 @AndroidEntryPoint
 class ClipboardService : Service() {
-
     @Inject
     lateinit var clipboardDao: ClipboardDao
 
@@ -88,7 +86,6 @@ class ClipboardService : Service() {
             CoroutineScope(Dispatchers.Main).launch {
                 Toast.makeText(this@ClipboardService, "📋 Clipboard dinleme aktif!", Toast.LENGTH_SHORT).show()
             }
-
         } catch (e: Exception) {
             Log.e(TAG, "❌ ClipboardService başlatma hatası: ${e.message}", e)
         }
@@ -122,44 +119,45 @@ class ClipboardService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
-    private val clipboardListener = ClipboardManager.OnPrimaryClipChangedListener {
-        Log.d(TAG, "📋 Clipboard değişikliği algılandı")
+    private val clipboardListener =
+        ClipboardManager.OnPrimaryClipChangedListener {
+            Log.d(TAG, "📋 Clipboard değişikliği algılandı")
 
-        try {
-            val clipData = clipboardManager.primaryClip
-            if (clipData != null && clipData.itemCount > 0) {
-                val clipText = clipData.getItemAt(0).text?.toString()
-                val source = clipData.description.label?.toString()
+            try {
+                val clipData = clipboardManager.primaryClip
+                if (clipData != null && clipData.itemCount > 0) {
+                    val clipText = clipData.getItemAt(0).text?.toString()
+                    val source = clipData.description.label?.toString()
 
-                // Uygulama içi kopyalamaları kontrol et
-                if (source == "Clipbo") {
-                    Log.d(TAG, "Uygulama içi kopyalama, yeni kayıt oluşturulmayacak")
-                    return@OnPrimaryClipChangedListener
-                }
+                    // Uygulama içi kopyalamaları kontrol et
+                    if (source == "Clipbo") {
+                        Log.d(TAG, "Uygulama içi kopyalama, yeni kayıt oluşturulmayacak")
+                        return@OnPrimaryClipChangedListener
+                    }
 
-                if (!clipText.isNullOrBlank() && clipText != lastClipboardContent) {
-                    lastClipboardContent = clipText
-                    Log.d(TAG, "Yeni clipboard içeriği: ${clipText.take(50)}...")
+                    if (!clipText.isNullOrBlank() && clipText != lastClipboardContent) {
+                        lastClipboardContent = clipText
+                        Log.d(TAG, "Yeni clipboard içeriği: ${clipText.take(50)}...")
 
-                    // Arka planda veritabanına kaydet
-                    serviceScope.launch {
-                        try {
-                            saveClipboardItem(clipText)
-                            Log.d(TAG, "✅ Clipboard başarıyla kaydedildi")
-                        } catch (e: Exception) {
-                            Log.e(TAG, "❌ Clipboard kaydedilirken hata oluştu: ${e.message}", e)
+                        // Arka planda veritabanına kaydet
+                        serviceScope.launch {
+                            try {
+                                saveClipboardItem(clipText)
+                                Log.d(TAG, "✅ Clipboard başarıyla kaydedildi")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "❌ Clipboard kaydedilirken hata oluştu: ${e.message}", e)
+                            }
                         }
+                    } else {
+                        Log.d(TAG, "Clipboard içeriği boş veya son içerikle aynı")
                     }
                 } else {
-                    Log.d(TAG, "Clipboard içeriği boş veya son içerikle aynı")
+                    Log.d(TAG, "ClipData null veya boş")
                 }
-            } else {
-                Log.d(TAG, "ClipData null veya boş")
+            } catch (e: Exception) {
+                Log.e(TAG, "❌ Clipboard dinleme sırasında hata: ${e.message}", e)
             }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Clipboard dinleme sırasında hata: ${e.message}", e)
         }
-    }
 
     private suspend fun saveClipboardItem(content: String) {
         try {
@@ -168,15 +166,16 @@ class ClipboardService : Service() {
             val clipboardType = detectContentType(content)
             val isSecureContent = isSecureContent(content)
 
-            val clipboardEntity = ClipboardEntity(
-                content = content,
-                timestamp = System.currentTimeMillis(),
-                type = clipboardType,
-                isPinned = false,
-                isSecure = isSecureContent,
-                tags = "",
-                preview = content.take(100)
-            )
+            val clipboardEntity =
+                ClipboardEntity(
+                    content = content,
+                    timestamp = System.currentTimeMillis(),
+                    type = clipboardType,
+                    isPinned = false,
+                    isSecure = isSecureContent,
+                    tags = "",
+                    preview = content.take(100),
+                )
 
             val insertedId = clipboardDao.insertItem(clipboardEntity)
             Log.d(TAG, "✅ Veritabanına kaydedildi! ID: $insertedId, Tip: $clipboardType")
@@ -195,7 +194,6 @@ class ClipboardService : Service() {
             CoroutineScope(Dispatchers.Main).launch {
                 Toast.makeText(this@ClipboardService, "✅ Kaydedildi!", Toast.LENGTH_SHORT).show()
             }
-
         } catch (e: Exception) {
             Log.e(TAG, "❌ Veritabanı kaydetme hatası: ${e.message}", e)
             CoroutineScope(Dispatchers.Main).launch {
@@ -230,51 +228,55 @@ class ClipboardService : Service() {
         val criteriaCount = listOf(hasUpper, hasLower, hasDigit, hasSpecial).count { it }
 
         return criteriaCount >= 3 ||
-                (criteriaCount >= 2 && content.length >= 8) ||
-                content.contains("password", ignoreCase = true) ||
-                content.contains("parola", ignoreCase = true) ||
-                content.contains("şifre", ignoreCase = true)
+            (criteriaCount >= 2 && content.length >= 8) ||
+            content.contains("password", ignoreCase = true) ||
+            content.contains("parola", ignoreCase = true) ||
+            content.contains("şifre", ignoreCase = true)
     }
 
     private fun isSecureContent(content: String): Boolean {
         val type = detectContentType(content)
 
         // Hassas kelimeler
-        val sensitiveKeywords = listOf(
-            "password", "parola", "şifre", "pass", "pin", "kod",
-            "iban", "hesap", "kart", "cvv", "cvc", "otp", "token",
-            "secret", "gizli", "private", "özel"
-        )
+        val sensitiveKeywords =
+            listOf(
+                "password", "parola", "şifre", "pass", "pin", "kod",
+                "iban", "hesap", "kart", "cvv", "cvc", "otp", "token",
+                "secret", "gizli", "private", "özel",
+            )
 
         val contentLower = content.lowercase()
-        val containsSensitiveKeyword = sensitiveKeywords.any {
-            contentLower.contains(it)
-        }
+        val containsSensitiveKeyword =
+            sensitiveKeywords.any {
+                contentLower.contains(it)
+            }
 
         return type in listOf("PASSWORD", "PIN", "IBAN") ||
-                containsSensitiveKeyword ||
-                (content.length in 4..6 && content.all { it.isDigit() }) // Kısa PIN'ler
+            containsSensitiveKeyword ||
+            (content.length in 4..6 && content.all { it.isDigit() }) // Kısa PIN'ler
     }
 
     private fun createNotificationChannel() {
-        val channel = NotificationChannelCompat.Builder(
-            CHANNEL_ID,
-            NotificationManagerCompat.IMPORTANCE_LOW
-        )
-            .setName("Clipboard Servisi")
-            .setDescription("Clipboard geçmişi yakalama servisi")
-            .build()
+        val channel =
+            NotificationChannelCompat.Builder(
+                CHANNEL_ID,
+                NotificationManagerCompat.IMPORTANCE_LOW,
+            )
+                .setName("Clipboard Servisi")
+                .setDescription("Clipboard geçmişi yakalama servisi")
+                .build()
 
         NotificationManagerCompat.from(this).createNotificationChannel(channel)
     }
 
-    private fun createNotification() = NotificationCompat.Builder(this, CHANNEL_ID)
-        .setContentTitle("Clipbo Aktif 📋")
-        .setContentText("Clipboard geçmişi kaydediliyor...")
-        .setSmallIcon(android.R.drawable.ic_menu_edit) // Geçici icon
-        .setOngoing(true)
-        .setPriority(NotificationCompat.PRIORITY_LOW)
-        .build()
+    private fun createNotification() =
+        NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("Clipbo Aktif 📋")
+            .setContentText("Clipboard geçmişi kaydediliyor...")
+            .setSmallIcon(android.R.drawable.ic_menu_edit) // Geçici icon
+            .setOngoing(true)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .build()
 
     // Widget ile ilgili yardımcı methodlar
     private fun updateWidgetServiceStatus(isRunning: Boolean) {
