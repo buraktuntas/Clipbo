@@ -12,8 +12,10 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.bt.clipbo.data.service.ClipboardService
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,9 +27,10 @@ fun NavigationScreen(
     onNavigateToSettings: () -> Unit = {},
     onStartService: () -> Unit = {},
     onStopService: () -> Unit = {},
-    onNavigateToStatistics: () -> Unit = {},
+    onNavigateToStatistics: () -> Unit = {}
 ) {
-    var isServiceRunning by remember { mutableStateOf(false) }
+    val context = LocalContext.current
+    var isServiceRunning by remember { mutableStateOf(ClipboardService.isServiceRunning(context)) }
     val statisticsViewModel: StatisticsViewModel = hiltViewModel()
     val statisticsState by statisticsViewModel.state.collectAsState()
 
@@ -36,32 +39,30 @@ fun NavigationScreen(
             TopAppBar(
                 title = {
                     Row(
-                        verticalAlignment = Alignment.CenterVertically,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = "📋",
-                            style = MaterialTheme.typography.titleLarge,
+                            style = MaterialTheme.typography.titleLarge
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text("Clipbo")
                     }
                 },
-                colors =
-                    TopAppBarDefaults.topAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = Color.Transparent,
+                    titleContentColor = MaterialTheme.colorScheme.onSurface
+                )
             )
-        },
+        }
     ) { paddingValues ->
         Column(
-            modifier =
-                Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(16.dp)
-                    .verticalScroll(rememberScrollState()),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp)
+                .verticalScroll(rememberScrollState()),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Servis durumu kartı
             ServiceStatusCard(
@@ -72,8 +73,8 @@ fun NavigationScreen(
                     } else {
                         onStartService()
                     }
-                    isServiceRunning = !isServiceRunning
-                },
+                    isServiceRunning = ClipboardService.isServiceRunning(context)
+                }
             )
 
             // İstatistik kartı

@@ -2,6 +2,7 @@ package com.bt.clipbo.presentation.ui.settings
 
 import android.content.Intent
 import android.net.Uri
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
@@ -69,6 +70,34 @@ fun SettingsScreen(
                     .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp),
         ) {
+            // Pil optimizasyonu uyarısı ve ayarı
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Text(
+                        text = "Pil Optimizasyonu",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Bazı cihazlarda, uygulama arka planda çalışırken clipboard geçmişi alınamayabilir. Uygulamanın pil optimizasyonundan hariç tutulması önerilir.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = {
+                        val intent = Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS)
+                        context.startActivity(intent)
+                    }) {
+                        Icon(Icons.Default.BatteryFull, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Pil Optimizasyonu Ayarını Aç")
+                    }
+                }
+            }
+
             // Genel Ayarlar
             SettingsSection(title = "🎛️ Genel Ayarlar") {
                 SettingsItem(

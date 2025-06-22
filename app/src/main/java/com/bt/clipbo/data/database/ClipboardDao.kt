@@ -46,4 +46,7 @@ interface ClipboardDao {
         content: String,
         timestamp: Long,
     )
+
+    @Query("SELECT * FROM clipboard_items WHERE content = :content LIMIT 1")
+    suspend fun getItemByContent(content: String): ClipboardEntity?
 }

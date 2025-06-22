@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.lifecycleScope
+import com.bt.clipbo.data.preferences.UserPreferences
 import com.bt.clipbo.data.service.ClipboardService
 import com.bt.clipbo.presentation.ui.components.RatingDialog
 import com.bt.clipbo.presentation.ui.components.RatingViewModel
@@ -25,26 +26,26 @@ import com.bt.clipbo.utils.PermissionHelper
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed class Screen {
-    object Navigation : Screen()
+    data object Navigation : Screen()
 
-    object History : Screen()
+    data object History : Screen()
 
-    object Search : Screen()
+    data object Search : Screen()
 
-    object Tags : Screen()
+    data object Tags : Screen()
 
-    object Secure : Screen()
+    data object Secure : Screen()
 
-    object Settings : Screen()
+    data object Settings : Screen()
 }
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     private val ratingViewModel: RatingViewModel by viewModels()
-
-    // Permission kontrol durumu
+    @Inject lateinit var userPreferences: UserPreferences
     private var isPermissionCheckCompleted = false
 
     // Notification permission launcher
@@ -104,14 +105,20 @@ class MainActivity : ComponentActivity() {
             }
         }
 
-        // UI yüklendikten sonra permission kontrolü yap
+        // Otomatik başlatma tercihini kontrol et (izin istemeden önce servis başlatma girişimi yok)
+        /*
         lifecycleScope.launch {
-            delay(500) // UI'nin tamamen yüklenmesini bekle
+            delay(500)
             if (!isPermissionCheckCompleted) {
                 checkAllPermissionsAndStartService()
                 isPermissionCheckCompleted = true
+
+                if (userPreferences.autoStartService.first()) {
+                    startClipboardService()
+                }
             }
         }
+        */
     }
 
     private fun checkAllPermissionsAndStartService() {

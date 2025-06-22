@@ -47,6 +47,12 @@ class ClipboardService : Service() {
             val intent = Intent(context, ClipboardService::class.java)
             context.stopService(intent)
         }
+
+        fun isServiceRunning(context: Context): Boolean {
+            val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+            return manager.getRunningServices(Int.MAX_VALUE)
+                .any { it.service.className == ClipboardService::class.java.name }
+        }
     }
 
     override fun onCreate() {
@@ -161,6 +167,13 @@ class ClipboardService : Service() {
 
     private suspend fun saveClipboardItem(content: String) {
         try {
+            val existingItem = clipboardDao.getItemByContent(content)
+            if (existingItem != null) {
+                clipboardDao.updateItemTimestamp(content, System.currentTimeMillis())
+                Log.d(TAG, "Mevcut içerik, sadece timestamp güncellendi.")
+                return
+            }
+
             Log.d(TAG, "💾 Veritabanına kaydediliyor: ${content.take(30)}...")
 
             val clipboardType = detectContentType(content)
