@@ -1,14 +1,11 @@
 package com.bt.clipbo.di
 
 import android.content.Context
-import com.bt.clipbo.data.database.ClipboardDao
-import com.bt.clipbo.data.database.ClipboardDatabase
-import com.bt.clipbo.data.database.TagDao
-import com.bt.clipbo.data.database.UserPreferenceDao
-import com.bt.clipbo.data.database.UsageAnalyticsDao
+import com.bt.clipbo.data.database.*
 import com.bt.clipbo.data.repository.ClipboardRepository
 import com.bt.clipbo.data.repository.TagRepository
 import com.bt.clipbo.utils.BiometricHelper
+import com.bt.clipbo.widget.repository.WidgetRepository
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,8 +18,7 @@ import javax.inject.Singleton
 object DatabaseModule {
 
     /**
-     * Database instance - Hilt best practices
-     * Static factory method yerine doğrudan Room.databaseBuilder kullanımı
+     * Thread-safe database instance - Production ready
      */
     @Provides
     @Singleton
@@ -33,7 +29,7 @@ object DatabaseModule {
     }
 
     /**
-     * DAO Providers - Database instance'dan türetilir
+     * DAO Providers - Thread-safe injection
      */
     @Provides
     fun provideClipboardDao(database: ClipboardDatabase): ClipboardDao {
@@ -57,7 +53,6 @@ object DatabaseModule {
 
     /**
      * Repository Providers - Clean Architecture
-     * Repository'ler artık doğrudan DAO'lardan inject edilir
      */
     @Provides
     @Singleton
@@ -69,6 +64,20 @@ object DatabaseModule {
     @Singleton
     fun provideTagRepository(tagDao: TagDao): TagRepository {
         return TagRepository(tagDao)
+    }
+
+    /**
+     * Widget Repository - DÜZELT: Simple singleton with auto-initialization
+     */
+    @Provides
+    @Singleton
+    fun provideWidgetRepository(
+        @ApplicationContext context: Context,
+        clipboardDao: ClipboardDao
+    ): WidgetRepository {
+        val repository = WidgetRepository(context, clipboardDao)
+        // Repository will self-initialize in its init block
+        return repository
     }
 
     /**

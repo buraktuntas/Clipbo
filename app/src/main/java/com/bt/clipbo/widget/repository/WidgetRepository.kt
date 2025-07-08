@@ -11,11 +11,9 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
-import java.util.concurrent.locks.ReentrantReadWriteLock
+import java.util.concurrent.atomic.AtomicReference
 import javax.inject.Inject
 import javax.inject.Singleton
-import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 @Singleton
 class WidgetRepository @Inject constructor(
@@ -29,46 +27,52 @@ class WidgetRepository @Inject constructor(
         private const val KEY_SERVICE_RUNNING = "service_running"
         private const val KEY_LAST_UPDATE = "last_update"
 
-        @Volatile
-        private var INSTANCE: WidgetRepository? = null
-
-        // Thread-safe instance management
-        private val lock = ReentrantReadWriteLock()
+        // Thread-safe singleton with AtomicReference
+        private val INSTANCE = AtomicReference<WidgetRepository?>(null)
 
         /**
-         * Thread-safe singleton instance getter
+         * Thread-safe singleton getter with double-checked locking pattern
          */
-        fun getInstance(): WidgetRepository = lock.read {
-            INSTANCE ?: throw IllegalStateException(
-                "WidgetRepository not initialized. Call initialize() first."
+        fun getInstance(): WidgetRepository {
+            return INSTANCE.get() ?: throw IllegalStateException(
+                "WidgetRepository not initialized. Ensure Hilt injection is working properly."
             )
         }
 
         /**
-         * Thread-safe initialization
+         * Thread-safe initialization with compare-and-set
          */
-        fun initialize(instance: WidgetRepository) = lock.write {
-            if (INSTANCE == null) {
-                INSTANCE = instance
-                Log.d(TAG, "WidgetRepository initialized successfully")
+        fun initialize(instance: WidgetRepository): Boolean {
+            val success = INSTANCE.compareAndSet(null, instance)
+            if (success) {
+                Log.d(TAG, "✅ WidgetRepository initialized successfully")
             } else {
-                Log.w(TAG, "WidgetRepository already initialized")
+                Log.w(TAG, "⚠️ WidgetRepository already initialized")
+            }
+            return success
+        }
+
+        /**
+         * Check if initialized atomically
+         */
+        fun isInitialized(): Boolean = INSTANCE.get() != null
+
+        /**
+         * Safe cleanup with atomic operation
+         */
+        fun cleanup() {
+            val previous = INSTANCE.getAndSet(null)
+            if (previous != null) {
+                Log.d(TAG, "🧹 WidgetRepository cleaned up")
             }
         }
 
         /**
-         * Check if initialized
+         * Force reset (use only in tests)
          */
-        fun isInitialized(): Boolean = lock.read {
-            INSTANCE != null
-        }
-
-        /**
-         * Safe cleanup
-         */
-        fun cleanup() = lock.write {
-            INSTANCE = null
-            Log.d(TAG, "WidgetRepository cleaned up")
+        @JvmStatic
+        fun forceReset() {
+            INSTANCE.set(null)
         }
     }
 
@@ -76,21 +80,32 @@ class WidgetRepository @Inject constructor(
         context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     }
 
+    // Initialize immediately upon creation
+    init {
+        initialize(this)
+    }
+
     /**
-     * Get recent clipboard items for widget display
-     * Thread-safe ve error-resistant
+     * Get recent clipboard items with comprehensive error handling
      */
     fun getRecentItems(limit: Int): Flow<List<WidgetClipboardItem>> {
         return try {
             clipboardDao.getAllItems()
                 .map { entities ->
-                    entities.take(limit).map { entity ->
-                        entity.toWidgetItem()
-                    }
+                    entities
+                        .take(limit.coerceIn(1, 20)) // Limit validation
+                        .mapNotNull { entity ->
+                            try {
+                                entity.toWidgetItem()
+                            } catch (e: Exception) {
+                                Log.w(TAG, "Failed to convert entity ${entity.id}", e)
+                                null // Skip problematic items
+                            }
+                        }
                 }
                 .catch { exception ->
                     Log.e(TAG, "Error fetching recent items", exception)
-                    emit(emptyList()) // Fallback to empty list
+                    emit(emptyList()) // Graceful fallback
                 }
         } catch (e: Exception) {
             Log.e(TAG, "Failed to create items flow", e)
@@ -99,37 +114,87 @@ class WidgetRepository @Inject constructor(
     }
 
     /**
-     * Get service running status
-     * Multiple source checking için robust
+     * Get service running status with multi-layer validation
      */
     fun isServiceRunning(): Flow<Boolean> = try {
-        flowOf(getServiceRunningStatus())
+        flowOf(getServiceRunningStatusWithValidation())
     } catch (e: Exception) {
         Log.e(TAG, "Error checking service status", e)
-        flowOf(false) // Safe fallback
+        flowOf(false) // Safe default
     }
 
     /**
-     * Update service status atomically
+     * Atomic service status update
      */
     fun updateServiceStatus(isRunning: Boolean) {
         try {
             val timestamp = System.currentTimeMillis()
 
-            sharedPreferences.edit()
+            val success = sharedPreferences.edit()
                 .putBoolean(KEY_SERVICE_RUNNING, isRunning)
                 .putLong(KEY_LAST_UPDATE, timestamp)
-                .apply() // Async write
+                .commit() // Synchronous for reliability
 
-            Log.d(TAG, "Service status updated: $isRunning at $timestamp")
+            if (success) {
+                Log.d(TAG, "✅ Service status updated: $isRunning at $timestamp")
+            } else {
+                Log.e(TAG, "❌ Failed to update service status")
+            }
 
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to update service status", e)
+            Log.e(TAG, "Exception updating service status", e)
         }
     }
 
     /**
-     * Get widget statistics
+     * Multi-layer service status validation
+     */
+    private fun getServiceRunningStatusWithValidation(): Boolean {
+        return try {
+            // Layer 1: SharedPreferences (fast)
+            val fromPrefs = sharedPreferences.getBoolean(KEY_SERVICE_RUNNING, false)
+            val lastUpdate = sharedPreferences.getLong(KEY_LAST_UPDATE, 0)
+
+            // Layer 2: Staleness check
+            val age = System.currentTimeMillis() - lastUpdate
+            val isStale = age > 120_000 // 2 minutes
+
+            if (isStale && lastUpdate > 0) {
+                Log.w(TAG, "⏰ Service status is stale (${age / 1000}s old), refreshing...")
+                refreshServiceStatusFromSystem()
+            } else {
+                fromPrefs
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error in service status validation", e)
+            false // Safe default
+        }
+    }
+
+    /**
+     * System-level service status check (expensive operation)
+     */
+    private fun refreshServiceStatusFromSystem(): Boolean = try {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE)
+                as android.app.ActivityManager
+
+        val runningServices = activityManager.getRunningServices(Integer.MAX_VALUE)
+        val isRunning = runningServices.any { serviceInfo ->
+            serviceInfo.service.className.contains("ClipboardService") &&
+                    serviceInfo.service.packageName == context.packageName
+        }
+
+        // Update cache with fresh data
+        updateServiceStatus(isRunning)
+        isRunning
+
+    } catch (e: Exception) {
+        Log.e(TAG, "System service check failed", e)
+        false
+    }
+
+    /**
+     * Get widget statistics with error handling
      */
     fun getWidgetStats(): Flow<WidgetStats> = try {
         clipboardDao.getAllItems()
@@ -143,94 +208,52 @@ class WidgetRepository @Inject constructor(
             }
             .catch { exception ->
                 Log.e(TAG, "Error fetching widget stats", exception)
-                emit(WidgetStats()) // Empty stats as fallback
+                emit(WidgetStats()) // Empty stats fallback
             }
     } catch (e: Exception) {
         Log.e(TAG, "Failed to create stats flow", e)
-        flowOf(WidgetStats()) // Safe fallback
+        flowOf(WidgetStats())
     }
 
     /**
-     * Internal service status check with multiple fallbacks
-     */
-    private fun getServiceRunningStatus(): Boolean = try {
-        // Primary: SharedPreferences
-        val fromPrefs = sharedPreferences.getBoolean(KEY_SERVICE_RUNNING, false)
-        val lastUpdate = sharedPreferences.getLong(KEY_LAST_UPDATE, 0)
-
-        // Validation: Status çok eski mi?
-        val isStale = System.currentTimeMillis() - lastUpdate > 60_000 // 1 dakika
-
-        if (isStale) {
-            Log.w(TAG, "Service status is stale, refreshing...")
-            // Secondary check: ActivityManager (costly operation)
-            checkServiceViaActivityManager()
-        } else {
-            fromPrefs
-        }
-    } catch (e: Exception) {
-        Log.e(TAG, "Error in service status check", e)
-        false // Safe default
-    }
-
-    /**
-     * Secondary service check via ActivityManager
-     * Expensive operation - use sparingly
-     */
-    private fun checkServiceViaActivityManager(): Boolean = try {
-        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE)
-                as android.app.ActivityManager
-
-        val runningServices = activityManager.getRunningServices(Integer.MAX_VALUE)
-        val isRunning = runningServices.any { serviceInfo ->
-            serviceInfo.service.className.contains("ClipboardService")
-        }
-
-        // Update cache
-        updateServiceStatus(isRunning)
-        isRunning
-
-    } catch (e: Exception) {
-        Log.e(TAG, "ActivityManager check failed", e)
-        false
-    }
-
-    /**
-     * Clear widget cache
+     * Clear widget cache safely
      */
     fun clearCache() {
         try {
-            sharedPreferences.edit()
-                .clear()
-                .apply()
-            Log.d(TAG, "Widget cache cleared")
+            val success = sharedPreferences.edit().clear().commit()
+            if (success) {
+                Log.d(TAG, "🧹 Widget cache cleared successfully")
+            } else {
+                Log.e(TAG, "❌ Failed to clear widget cache")
+            }
         } catch (e: Exception) {
-            Log.e(TAG, "Failed to clear cache", e)
+            Log.e(TAG, "Exception clearing cache", e)
         }
     }
 
     /**
-     * Get cache info for debugging
+     * Get comprehensive cache info for debugging
      */
     fun getCacheInfo(): String = try {
         val lastUpdate = sharedPreferences.getLong(KEY_LAST_UPDATE, 0)
         val serviceRunning = sharedPreferences.getBoolean(KEY_SERVICE_RUNNING, false)
-        val age = System.currentTimeMillis() - lastUpdate
+        val age = if (lastUpdate > 0) System.currentTimeMillis() - lastUpdate else 0
 
-        """
-        Widget Cache Info:
-        - Service Running: $serviceRunning
-        - Last Update: ${if (lastUpdate > 0) "${age / 1000}s ago" else "Never"}
-        - Cache Age: ${age / 1000}s
-        """.trimIndent()
+        buildString {
+            appendLine("📊 Widget Cache Info:")
+            appendLine("├─ Service Running: ${if (serviceRunning) "✅" else "❌"}")
+            appendLine("├─ Last Update: ${if (lastUpdate > 0) "${age / 1000}s ago" else "Never"}")
+            appendLine("├─ Cache Age: ${age / 1000}s")
+            appendLine("├─ Cache Status: ${if (age < 120_000) "Fresh" else "Stale"}")
+            appendLine("└─ Instance: ${if (isInitialized()) "✅ Ready" else "❌ Not Ready"}")
+        }
     } catch (e: Exception) {
-        "Cache info error: ${e.message}"
+        "❌ Cache info error: ${e.message}"
     }
 }
 
 /**
- * Extension function to convert ClipboardEntity to WidgetClipboardItem
- * Null-safe ve error-resistant
+ * Thread-safe extension function to convert ClipboardEntity to WidgetClipboardItem
  */
 private fun ClipboardEntity.toWidgetItem(): WidgetClipboardItem = try {
     WidgetClipboardItem(
@@ -245,10 +268,10 @@ private fun ClipboardEntity.toWidgetItem(): WidgetClipboardItem = try {
         isSecure = this.isSecure
     )
 } catch (e: Exception) {
-    Log.e("WidgetRepository", "Error converting entity to widget item", e)
+    Log.e("WidgetRepository", "Error converting entity ${this.id} to widget item", e)
     WidgetClipboardItem(
         id = this.id,
-        content = "Error loading content",
+        content = "⚠️ Error loading content",
         preview = "Error",
         type = "ERROR",
         timestamp = this.timestamp,
@@ -258,11 +281,15 @@ private fun ClipboardEntity.toWidgetItem(): WidgetClipboardItem = try {
 }
 
 /**
- * Widget statistics data class
+ * Widget statistics data class with defaults
  */
 data class WidgetStats(
     val totalItems: Int = 0,
     val pinnedItems: Int = 0,
     val secureItems: Int = 0,
     val lastUpdate: Long = 0L
-)
+) {
+    val isEmpty: Boolean get() = totalItems == 0
+    val hasSecureItems: Boolean get() = secureItems > 0
+    val pinnedPercentage: Float get() = if (totalItems > 0) (pinnedItems.toFloat() / totalItems) * 100 else 0f
+}

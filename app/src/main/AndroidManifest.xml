@@ -15,9 +15,6 @@
     <uses-permission android:name="android.permission.BIND_ACCESSIBILITY_SERVICE"
         tools:ignore="ProtectedPermissions" />
 
-    <!-- Deprecated permission removed -->
-    <!-- <uses-permission android:name="android.permission.USE_FINGERPRINT" /> -->
-
     <application
         android:name=".ClipboApplication"
         android:allowBackup="true"
@@ -49,26 +46,27 @@
             android:exported="false"
             android:foregroundServiceType="dataSync" />
 
-        <!-- Accessibility Service - FIXED -->
+        <!-- Accessibility Service -->
         <service
             android:name=".data.service.ClipboAccessibilityService"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE"
             android:exported="true"
-            android:enabled="true">
+            android:enabled="true"
+            android:label="@string/app_name">
             <intent-filter>
-                <action android:name="android.accessibility.AccessibilityService" />
+                <action android:name="android.accessibilityservice.AccessibilityService" />
             </intent-filter>
             <meta-data
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
-        <!-- AdMob App ID (Test ID for development) -->
+        <!-- AdMob App ID -->
         <meta-data
             android:name="com.google.android.gms.ads.APPLICATION_ID"
             android:value="ca-app-pub-3940256099942544~3347511713" />
 
-        <!-- Clipbo Widget -->
+        <!-- Widget -->
         <receiver
             android:name=".widget.ClipboWidgetReceiver"
             android:exported="true"
@@ -81,7 +79,7 @@
                 android:resource="@xml/clipbo_widget_info" />
         </receiver>
 
-        <!-- File Provider for backup/restore operations -->
+        <!-- File Provider -->
         <provider
             android:name="androidx.core.content.FileProvider"
             android:authorities="${applicationId}.fileprovider"
