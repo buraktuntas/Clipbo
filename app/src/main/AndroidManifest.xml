@@ -70,9 +70,19 @@
         <receiver
             android:name=".widget.ClipboWidgetReceiver"
             android:exported="true"
-            android:enabled="true">
+            android:enabled="true"
+            android:label="Clipbo Widget">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
+                <action android:name="android.appwidget.action.APPWIDGET_DELETED" />
+                <action android:name="android.appwidget.action.APPWIDGET_ENABLED" />
+                <action android:name="android.appwidget.action.APPWIDGET_DISABLED" />
+
+                <!-- Custom actions -->
+                <action android:name="com.bt.clipbo.WIDGET_REFRESH" />
+                <action android:name="com.bt.clipbo.WIDGET_COPY_ITEM" />
+                <action android:name="com.bt.clipbo.WIDGET_TOGGLE_SERVICE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"

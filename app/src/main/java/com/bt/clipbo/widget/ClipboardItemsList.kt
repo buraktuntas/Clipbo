@@ -26,7 +26,7 @@ fun ClipboardItemsList(items: List<WidgetClipboardItem>) {
         modifier = GlanceModifier.fillMaxSize(),
     ) {
         items(items.take(5)) { item ->
-            ClipboardWidgetItem(item = item)
+            //ClipboardWidgetItem(item = item)
 
             if (item != items.last()) {
                 Spacer(modifier = GlanceModifier.height(4.dp))

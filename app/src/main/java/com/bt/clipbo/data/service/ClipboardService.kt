@@ -14,10 +14,12 @@ import androidx.core.app.NotificationManagerCompat
 import com.bt.clipbo.R
 import com.bt.clipbo.data.database.ClipboardDao
 import com.bt.clipbo.data.database.ClipboardEntity
+import com.bt.clipbo.widget.WidgetClipboardItem
 import com.bt.clipbo.widget.WidgetUtils
 import com.bt.clipbo.widget.repository.WidgetRepository
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -52,48 +54,6 @@ class ClipboardService : Service() {
             val manager = context.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
             return manager.getRunningServices(Int.MAX_VALUE)
                 .any { it.service.className == ClipboardService::class.java.name }
-        }
-    }
-
-    override fun onCreate() {
-        super.onCreate()
-        Log.d(TAG, "🚀 ClipboardService onCreate() çağrıldı")
-
-        try {
-            clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
-            Log.d(TAG, "✅ ClipboardManager alındı")
-
-            createNotificationChannel()
-            Log.d(TAG, "✅ Notification channel oluşturuldu")
-
-            startForeground(NOTIFICATION_ID, createNotification())
-            Log.d(TAG, "✅ Foreground service başlatıldı")
-
-            // Clipboard listener ekle
-            clipboardManager.addPrimaryClipChangedListener(clipboardListener)
-            Log.d(TAG, "✅ Clipboard listener eklendi")
-
-            // İlk clipboard içeriğini al
-            val initialClip = clipboardManager.primaryClip
-            if (initialClip != null && initialClip.itemCount > 0) {
-                val initialText = initialClip.getItemAt(0).text?.toString()
-                if (!initialText.isNullOrEmpty()) {
-                    lastClipboardContent = initialText
-                    Log.d(TAG, "📋 İlk clipboard içeriği: ${initialText.take(30)}...")
-                }
-            }
-
-            // Widget repository status'unu güncelle
-            updateWidgetServiceStatus(true)
-
-            Log.d(TAG, "🎉 ClipboardService tamamen başlatıldı!")
-
-            // Ana thread'de toast göster
-            CoroutineScope(Dispatchers.Main).launch {
-                Toast.makeText(this@ClipboardService, "📋 Clipboard dinleme aktif!", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ ClipboardService başlatma hatası: ${e.message}", e)
         }
     }
 
@@ -165,55 +125,6 @@ class ClipboardService : Service() {
             }
         }
 
-    private suspend fun saveClipboardItem(content: String) {
-        try {
-            val existingItem = clipboardDao.getItemByContent(content)
-            if (existingItem != null) {
-                clipboardDao.updateItemTimestamp(content, System.currentTimeMillis())
-                Log.d(TAG, "Mevcut içerik, sadece timestamp güncellendi.")
-                return
-            }
-
-            Log.d(TAG, "💾 Veritabanına kaydediliyor: ${content.take(30)}...")
-
-            val clipboardType = detectContentType(content)
-            val isSecureContent = isSecureContent(content)
-
-            val clipboardEntity =
-                ClipboardEntity(
-                    content = content,
-                    timestamp = System.currentTimeMillis(),
-                    type = clipboardType,
-                    isPinned = false,
-                    isSecure = isSecureContent,
-                    tags = "",
-                    preview = content.take(100),
-                )
-
-            val insertedId = clipboardDao.insertItem(clipboardEntity)
-            Log.d(TAG, "✅ Veritabanına kaydedildi! ID: $insertedId, Tip: $clipboardType")
-
-            // Eski kayıtları temizle (son 100 kaydı tut)
-            val itemCount = clipboardDao.getItemCount()
-            if (itemCount > 100) {
-                clipboardDao.keepOnlyLatest(100)
-                Log.d(TAG, "🧹 Eski kayıtlar temizlendi (toplam: $itemCount)")
-            }
-
-            // Widget'ları güncelle
-            updateAllWidgets()
-
-            // Ana thread'de başarı mesajı
-            CoroutineScope(Dispatchers.Main).launch {
-                Toast.makeText(this@ClipboardService, "✅ Kaydedildi!", Toast.LENGTH_SHORT).show()
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "❌ Veritabanı kaydetme hatası: ${e.message}", e)
-            CoroutineScope(Dispatchers.Main).launch {
-                Toast.makeText(this@ClipboardService, "❌ Kayıt hatası: ${e.message}", Toast.LENGTH_SHORT).show()
-            }
-        }
-    }
 
     private fun detectContentType(content: String): String {
         return when {
@@ -291,30 +202,161 @@ class ClipboardService : Service() {
             .setPriority(NotificationCompat.PRIORITY_LOW)
             .build()
 
-    // Widget ile ilgili yardımcı methodlar
+    /**
+     * Widget repository status'unu güncelle
+     */
     private fun updateWidgetServiceStatus(isRunning: Boolean) {
         try {
-            val widgetRepository = WidgetRepository.getInstance()
-            widgetRepository.updateServiceStatus(isRunning)
+            // SharedPreferences ile basit status update
+            val prefs = getSharedPreferences("clipbo_widget_prefs", Context.MODE_PRIVATE)
+            prefs.edit()
+                .putBoolean("service_running", isRunning)
+                .putLong("last_update", System.currentTimeMillis())
+                .apply()
+
             Log.d(TAG, "✅ Widget servis durumu güncellendi: $isRunning")
         } catch (e: Exception) {
-            Log.w(TAG, "⚠️ Widget repository bulunamadı: ${e.message}")
-
-            // Fallback: SharedPreferences kullan
-            val prefs = getSharedPreferences("clipbo_prefs", Context.MODE_PRIVATE)
-            prefs.edit().putBoolean("service_running", isRunning).apply()
-            Log.d(TAG, "✅ Fallback ile servis durumu güncellendi: $isRunning")
+            Log.w(TAG, "⚠️ Widget status update hatası: ${e.message}")
         }
     }
 
+    /**
+     * Widget'ları güncelle
+     */
     private fun updateAllWidgets() {
-        // Ana thread'de widget güncellemesi yap
         CoroutineScope(Dispatchers.Main).launch {
             try {
+                // Widget cache güncelle
+                updateWidgetCache()
+
+                // Widget'ları güncelle
                 WidgetUtils.updateAllWidgets(this@ClipboardService)
+
                 Log.d(TAG, "✅ Widget'lar güncellendi")
             } catch (e: Exception) {
                 Log.w(TAG, "⚠️ Widget güncelleme hatası: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Widget cache güncelle
+     */
+    private suspend fun updateWidgetCache() {
+        try {
+            // Son 10 öğeyi al
+            val recentItems = clipboardDao.getAllItems().first().take(10)
+
+            // WidgetClipboardItem'lara dönüştür
+            val widgetItems = recentItems.map { entity ->
+                WidgetClipboardItem(
+                    id = entity.id,
+                    content = entity.content,
+                    preview = WidgetUtils.getWidgetPreviewText(entity.content),
+                    type = entity.type,
+                    timestamp = entity.timestamp,
+                    isPinned = entity.isPinned,
+                    isSecure = entity.isSecure
+                )
+            }
+
+            // Cache güncelle
+            WidgetUtils.updateWidgetCache(this@ClipboardService, widgetItems)
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Widget cache update hatası", e)
+        }
+    }
+
+    // ClipboardService onCreate() method'una eklenecek
+    override fun onCreate() {
+        super.onCreate()
+        Log.d(TAG, "🚀 ClipboardService onCreate() çağrıldı")
+
+        try {
+            clipboardManager = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
+            Log.d(TAG, "✅ ClipboardManager alındı")
+
+            createNotificationChannel()
+            Log.d(TAG, "✅ Notification channel oluşturuldu")
+
+            startForeground(NOTIFICATION_ID, createNotification())
+            Log.d(TAG, "✅ Foreground service başlatıldı")
+
+            // Clipboard listener ekle
+            clipboardManager.addPrimaryClipChangedListener(clipboardListener)
+            Log.d(TAG, "✅ Clipboard listener eklendi")
+
+            // Widget status güncelle
+            updateWidgetServiceStatus(true)
+
+            // İlk widget cache güncelle
+            CoroutineScope(Dispatchers.IO).launch {
+                delay(2000) // Service'in tamamen başlaması için bekle
+                updateWidgetCache()
+                updateAllWidgets()
+            }
+
+            Log.d(TAG, "🎉 ClipboardService tamamen başlatıldı!")
+
+            // Ana thread'de toast göster
+            CoroutineScope(Dispatchers.Main).launch {
+                Toast.makeText(this@ClipboardService, "📋 Clipboard dinleme aktif!", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ ClipboardService başlatma hatası: ${e.message}", e)
+        }
+    }
+
+    // saveClipboardItem method'una widget güncellemesi ekle
+    private suspend fun saveClipboardItem(content: String) {
+        try {
+            val existingItem = clipboardDao.getItemByContent(content)
+            if (existingItem != null) {
+                clipboardDao.updateItemTimestamp(content, System.currentTimeMillis())
+                Log.d(TAG, "Mevcut içerik, sadece timestamp güncellendi.")
+
+                // Widget güncelle (timestamp değişti)
+                updateAllWidgets()
+                return
+            }
+
+            Log.d(TAG, "💾 Veritabanına kaydediliyor: ${content.take(30)}...")
+
+            val clipboardType = detectContentType(content)
+            val isSecureContent = isSecureContent(content)
+
+            val clipboardEntity = ClipboardEntity(
+                content = content,
+                timestamp = System.currentTimeMillis(),
+                type = clipboardType,
+                isPinned = false,
+                isSecure = isSecureContent,
+                tags = "",
+                preview = content.take(100),
+            )
+
+            val insertedId = clipboardDao.insertItem(clipboardEntity)
+            Log.d(TAG, "✅ Veritabanına kaydedildi! ID: $insertedId, Tip: $clipboardType")
+
+            // Eski kayıtları temizle (son 100 kaydı tut)
+            val itemCount = clipboardDao.getItemCount()
+            if (itemCount > 100) {
+                clipboardDao.keepOnlyLatest(100)
+                Log.d(TAG, "🧹 Eski kayıtlar temizlendi (toplam: $itemCount)")
+            }
+
+            // Widget'ları güncelle - YENİ İÇERİK EKLENDİ
+            updateAllWidgets()
+
+            // Ana thread'de başarı mesajı
+            CoroutineScope(Dispatchers.Main).launch {
+                Toast.makeText(this@ClipboardService, "✅ Kaydedildi!", Toast.LENGTH_SHORT).show()
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "❌ Veritabanı kaydetme hatası: ${e.message}", e)
+            CoroutineScope(Dispatchers.Main).launch {
+                Toast.makeText(this@ClipboardService, "❌ Kayıt hatası: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

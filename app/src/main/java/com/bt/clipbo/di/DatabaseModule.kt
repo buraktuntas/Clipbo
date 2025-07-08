@@ -18,7 +18,7 @@ import javax.inject.Singleton
 object DatabaseModule {
 
     /**
-     * Thread-safe database instance - Production ready
+     * Thread-safe database instance
      */
     @Provides
     @Singleton
@@ -29,7 +29,7 @@ object DatabaseModule {
     }
 
     /**
-     * DAO Providers - Thread-safe injection
+     * DAO Providers
      */
     @Provides
     fun provideClipboardDao(database: ClipboardDatabase): ClipboardDao {
@@ -52,7 +52,7 @@ object DatabaseModule {
     }
 
     /**
-     * Repository Providers - Clean Architecture
+     * Repository Providers
      */
     @Provides
     @Singleton
@@ -67,7 +67,7 @@ object DatabaseModule {
     }
 
     /**
-     * Widget Repository - DÜZELT: Simple singleton with auto-initialization
+     * Widget Repository
      */
     @Provides
     @Singleton
@@ -75,9 +75,7 @@ object DatabaseModule {
         @ApplicationContext context: Context,
         clipboardDao: ClipboardDao
     ): WidgetRepository {
-        val repository = WidgetRepository(context, clipboardDao)
-        // Repository will self-initialize in its init block
-        return repository
+        return WidgetRepository(context, clipboardDao)
     }
 
     /**
