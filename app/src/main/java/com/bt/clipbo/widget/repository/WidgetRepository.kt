@@ -1,6 +1,8 @@
 package com.bt.clipbo.widget.repository
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.util.Log
 import com.bt.clipbo.data.database.ClipboardDao
 import com.bt.clipbo.data.database.ClipboardEntity
 import com.bt.clipbo.widget.WidgetClipboardItem
@@ -9,208 +11,258 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlin.concurrent.read
+import kotlin.concurrent.write
 
 @Singleton
-open class WidgetRepository
-    @Inject
-    constructor(
-        @ApplicationContext private val context: Context,
-        private val clipboardDao: ClipboardDao,
-    ) {
-        companion object {
-            @Volatile
-            private var INSTANCE: WidgetRepository? = null
+class WidgetRepository @Inject constructor(
+    @ApplicationContext private val context: Context,
+    private val clipboardDao: ClipboardDao
+) {
 
-            fun getInstance(): WidgetRepository {
-                return INSTANCE ?: synchronized(this) {
-                    INSTANCE ?: createFallbackInstance().also { INSTANCE = it }
-                }
-            }
+    companion object {
+        private const val TAG = "WidgetRepository"
+        private const val PREFS_NAME = "clipbo_widget_prefs"
+        private const val KEY_SERVICE_RUNNING = "service_running"
+        private const val KEY_LAST_UPDATE = "last_update"
 
-            fun initialize(instance: WidgetRepository) {
+        @Volatile
+        private var INSTANCE: WidgetRepository? = null
+
+        // Thread-safe instance management
+        private val lock = ReentrantReadWriteLock()
+
+        /**
+         * Thread-safe singleton instance getter
+         */
+        fun getInstance(): WidgetRepository = lock.read {
+            INSTANCE ?: throw IllegalStateException(
+                "WidgetRepository not initialized. Call initialize() first."
+            )
+        }
+
+        /**
+         * Thread-safe initialization
+         */
+        fun initialize(instance: WidgetRepository) = lock.write {
+            if (INSTANCE == null) {
                 INSTANCE = instance
-            }
-
-            private fun createFallbackInstance(): WidgetRepository {
-                // Fallback DAO implementation
-                val fallbackDao =
-                    object : ClipboardDao {
-                        override fun getAllItems() = flowOf(emptyList<ClipboardEntity>())
-
-                        override fun getPinnedItems() = flowOf(emptyList<ClipboardEntity>())
-
-                        override fun getSecureItems() = flowOf(emptyList<ClipboardEntity>())
-
-                        override fun searchItems(searchQuery: String) = flowOf(emptyList<ClipboardEntity>())
-
-                        override fun getItemsByType(type: String) = flowOf(emptyList<ClipboardEntity>())
-
-                        override suspend fun insertItem(item: ClipboardEntity): Long = 0
-
-                        override suspend fun updateItem(item: ClipboardEntity) {}
-
-                        override suspend fun deleteItem(item: ClipboardEntity) {}
-
-                        override suspend fun deleteItemById(id: Long) {}
-
-                        override suspend fun deleteAllUnpinned() {}
-
-                        override suspend fun getItemCount(): Int = 0
-
-                        override suspend fun keepOnlyLatest(limit: Int) {}
-
-                        override suspend fun updateItemTimestamp(
-                            content: String,
-                            timestamp: Long,
-                        ) {}
-                    }
-
-                val fallbackContext = android.app.Application()
-                return FallbackWidgetRepository(fallbackContext, fallbackDao)
+                Log.d(TAG, "WidgetRepository initialized successfully")
+            } else {
+                Log.w(TAG, "WidgetRepository already initialized")
             }
         }
 
-        open fun getRecentItems(limit: Int): Flow<List<WidgetClipboardItem>> {
-            return clipboardDao.getAllItems()
+        /**
+         * Check if initialized
+         */
+        fun isInitialized(): Boolean = lock.read {
+            INSTANCE != null
+        }
+
+        /**
+         * Safe cleanup
+         */
+        fun cleanup() = lock.write {
+            INSTANCE = null
+            Log.d(TAG, "WidgetRepository cleaned up")
+        }
+    }
+
+    private val sharedPreferences: SharedPreferences by lazy {
+        context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+    }
+
+    /**
+     * Get recent clipboard items for widget display
+     * Thread-safe ve error-resistant
+     */
+    fun getRecentItems(limit: Int): Flow<List<WidgetClipboardItem>> {
+        return try {
+            clipboardDao.getAllItems()
                 .map { entities ->
                     entities.take(limit).map { entity ->
-                        WidgetClipboardItem(
-                            id = entity.id,
-                            content = entity.content,
-                            preview = entity.preview.ifEmpty { entity.content.take(30) },
-                            type = entity.type,
-                            timestamp = entity.timestamp,
-                            isPinned = entity.isPinned,
-                            isSecure = entity.isSecure,
-                        )
+                        entity.toWidgetItem()
                     }
                 }
-                .catch {
-                    // Hata durumunda boş liste döner
-                    emit(emptyList())
+                .catch { exception ->
+                    Log.e(TAG, "Error fetching recent items", exception)
+                    emit(emptyList()) // Fallback to empty list
                 }
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to create items flow", e)
+            flowOf(emptyList()) // Safe fallback
         }
+    }
 
-        open fun isServiceRunning(): Flow<Boolean> {
-            return try {
-                // SharedPreferences'dan service durumunu kontrol et
-                val prefs = context.getSharedPreferences("clipbo_prefs", Context.MODE_PRIVATE)
-                val isRunning = prefs.getBoolean("service_running", false)
-                flowOf(isRunning)
-            } catch (e: Exception) {
-                flowOf(false)
+    /**
+     * Get service running status
+     * Multiple source checking için robust
+     */
+    fun isServiceRunning(): Flow<Boolean> = try {
+        flowOf(getServiceRunningStatus())
+    } catch (e: Exception) {
+        Log.e(TAG, "Error checking service status", e)
+        flowOf(false) // Safe fallback
+    }
+
+    /**
+     * Update service status atomically
+     */
+    fun updateServiceStatus(isRunning: Boolean) {
+        try {
+            val timestamp = System.currentTimeMillis()
+
+            sharedPreferences.edit()
+                .putBoolean(KEY_SERVICE_RUNNING, isRunning)
+                .putLong(KEY_LAST_UPDATE, timestamp)
+                .apply() // Async write
+
+            Log.d(TAG, "Service status updated: $isRunning at $timestamp")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to update service status", e)
+        }
+    }
+
+    /**
+     * Get widget statistics
+     */
+    fun getWidgetStats(): Flow<WidgetStats> = try {
+        clipboardDao.getAllItems()
+            .map { entities ->
+                WidgetStats(
+                    totalItems = entities.size,
+                    pinnedItems = entities.count { it.isPinned },
+                    secureItems = entities.count { it.isSecure },
+                    lastUpdate = System.currentTimeMillis()
+                )
             }
-        }
-
-        open fun updateServiceStatus(isRunning: Boolean) {
-            try {
-                val prefs = context.getSharedPreferences("clipbo_prefs", Context.MODE_PRIVATE)
-                prefs.edit().putBoolean("service_running", isRunning).apply()
-            } catch (e: Exception) {
-                // Ignore errors in fallback mode
+            .catch { exception ->
+                Log.e(TAG, "Error fetching widget stats", exception)
+                emit(WidgetStats()) // Empty stats as fallback
             }
+    } catch (e: Exception) {
+        Log.e(TAG, "Failed to create stats flow", e)
+        flowOf(WidgetStats()) // Safe fallback
+    }
+
+    /**
+     * Internal service status check with multiple fallbacks
+     */
+    private fun getServiceRunningStatus(): Boolean = try {
+        // Primary: SharedPreferences
+        val fromPrefs = sharedPreferences.getBoolean(KEY_SERVICE_RUNNING, false)
+        val lastUpdate = sharedPreferences.getLong(KEY_LAST_UPDATE, 0)
+
+        // Validation: Status çok eski mi?
+        val isStale = System.currentTimeMillis() - lastUpdate > 60_000 // 1 dakika
+
+        if (isStale) {
+            Log.w(TAG, "Service status is stale, refreshing...")
+            // Secondary check: ActivityManager (costly operation)
+            checkServiceViaActivityManager()
+        } else {
+            fromPrefs
+        }
+    } catch (e: Exception) {
+        Log.e(TAG, "Error in service status check", e)
+        false // Safe default
+    }
+
+    /**
+     * Secondary service check via ActivityManager
+     * Expensive operation - use sparingly
+     */
+    private fun checkServiceViaActivityManager(): Boolean = try {
+        val activityManager = context.getSystemService(Context.ACTIVITY_SERVICE)
+                as android.app.ActivityManager
+
+        val runningServices = activityManager.getRunningServices(Integer.MAX_VALUE)
+        val isRunning = runningServices.any { serviceInfo ->
+            serviceInfo.service.className.contains("ClipboardService")
+        }
+
+        // Update cache
+        updateServiceStatus(isRunning)
+        isRunning
+
+    } catch (e: Exception) {
+        Log.e(TAG, "ActivityManager check failed", e)
+        false
+    }
+
+    /**
+     * Clear widget cache
+     */
+    fun clearCache() {
+        try {
+            sharedPreferences.edit()
+                .clear()
+                .apply()
+            Log.d(TAG, "Widget cache cleared")
+        } catch (e: Exception) {
+            Log.e(TAG, "Failed to clear cache", e)
         }
     }
 
-// Fallback implementation class
-private class FallbackWidgetRepository(
-    context: Context,
-    clipboardDao: ClipboardDao,
-) : WidgetRepository(context, clipboardDao) {
-    override fun getRecentItems(limit: Int): Flow<List<WidgetClipboardItem>> {
-        return flowOf(emptyList())
-    }
+    /**
+     * Get cache info for debugging
+     */
+    fun getCacheInfo(): String = try {
+        val lastUpdate = sharedPreferences.getLong(KEY_LAST_UPDATE, 0)
+        val serviceRunning = sharedPreferences.getBoolean(KEY_SERVICE_RUNNING, false)
+        val age = System.currentTimeMillis() - lastUpdate
 
-    override fun isServiceRunning(): Flow<Boolean> {
-        return flowOf(false)
-    }
-
-    override fun updateServiceStatus(isRunning: Boolean) {
-        // Do nothing in fallback mode
+        """
+        Widget Cache Info:
+        - Service Running: $serviceRunning
+        - Last Update: ${if (lastUpdate > 0) "${age / 1000}s ago" else "Never"}
+        - Cache Age: ${age / 1000}s
+        """.trimIndent()
+    } catch (e: Exception) {
+        "Cache info error: ${e.message}"
     }
 }
 
-// Mock SharedPreferences for extreme fallback cases
-private class MockSharedPreferences : android.content.SharedPreferences {
-    override fun getAll(): MutableMap<String, *> = mutableMapOf<String, Any>()
-
-    override fun getString(
-        key: String?,
-        defValue: String?,
-    ) = defValue
-
-    override fun getStringSet(
-        key: String?,
-        defValues: MutableSet<String>?,
-    ) = defValues
-
-    override fun getInt(
-        key: String?,
-        defValue: Int,
-    ) = defValue
-
-    override fun getLong(
-        key: String?,
-        defValue: Long,
-    ) = defValue
-
-    override fun getFloat(
-        key: String?,
-        defValue: Float,
-    ) = defValue
-
-    override fun getBoolean(
-        key: String?,
-        defValue: Boolean,
-    ) = defValue
-
-    override fun contains(key: String?) = false
-
-    override fun edit() = MockEditor()
-
-    override fun registerOnSharedPreferenceChangeListener(listener: android.content.SharedPreferences.OnSharedPreferenceChangeListener?) {}
-
-    override fun unregisterOnSharedPreferenceChangeListener(listener: android.content.SharedPreferences.OnSharedPreferenceChangeListener?) {}
+/**
+ * Extension function to convert ClipboardEntity to WidgetClipboardItem
+ * Null-safe ve error-resistant
+ */
+private fun ClipboardEntity.toWidgetItem(): WidgetClipboardItem = try {
+    WidgetClipboardItem(
+        id = this.id,
+        content = this.content,
+        preview = this.preview.ifEmpty {
+            this.content.take(30) + if (this.content.length > 30) "..." else ""
+        },
+        type = this.type,
+        timestamp = this.timestamp,
+        isPinned = this.isPinned,
+        isSecure = this.isSecure
+    )
+} catch (e: Exception) {
+    Log.e("WidgetRepository", "Error converting entity to widget item", e)
+    WidgetClipboardItem(
+        id = this.id,
+        content = "Error loading content",
+        preview = "Error",
+        type = "ERROR",
+        timestamp = this.timestamp,
+        isPinned = false,
+        isSecure = false
+    )
 }
 
-private class MockEditor : android.content.SharedPreferences.Editor {
-    override fun putString(
-        key: String?,
-        value: String?,
-    ) = this
-
-    override fun putStringSet(
-        key: String?,
-        values: MutableSet<String>?,
-    ) = this
-
-    override fun putInt(
-        key: String?,
-        value: Int,
-    ) = this
-
-    override fun putLong(
-        key: String?,
-        value: Long,
-    ) = this
-
-    override fun putFloat(
-        key: String?,
-        value: Float,
-    ) = this
-
-    override fun putBoolean(
-        key: String?,
-        value: Boolean,
-    ) = this
-
-    override fun remove(key: String?) = this
-
-    override fun clear() = this
-
-    override fun commit() = true
-
-    override fun apply() {}
-}
+/**
+ * Widget statistics data class
+ */
+data class WidgetStats(
+    val totalItems: Int = 0,
+    val pinnedItems: Int = 0,
+    val secureItems: Int = 0,
+    val lastUpdate: Long = 0L
+)

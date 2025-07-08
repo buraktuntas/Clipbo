@@ -1,6 +1,8 @@
 package com.bt.clipbo.utils
 
 import android.content.Context
+import android.os.Build
+import androidx.annotation.RequiresApi
 import com.bt.clipbo.BuildConfig
 import com.bt.clipbo.data.database.UsageAnalyticsDao
 import com.bt.clipbo.data.database.UsageAnalyticsEntity
@@ -78,6 +80,7 @@ data class AnalyticsData(
     val sessionId: String = "",
 )
 
+@RequiresApi(Build.VERSION_CODES.DONUT)
 @Singleton
 class AnalyticsManager
     @Inject
@@ -110,9 +113,9 @@ class AnalyticsManager
                         parameters =
                             mapOf(
                                 "app_version" to getAppVersion(),
-                                "android_version" to android.os.Build.VERSION.RELEASE,
-                                "device_model" to android.os.Build.MODEL,
-                                "device_manufacturer" to android.os.Build.MANUFACTURER,
+                                "android_version" to Build.VERSION.RELEASE,
+                                "device_model" to Build.MODEL,
+                                "device_manufacturer" to Build.MANUFACTURER,
                             ),
                     ),
                 )

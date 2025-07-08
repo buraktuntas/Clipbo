@@ -6,6 +6,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 
 @Database(
     entities = [
@@ -14,106 +16,231 @@ import androidx.room.TypeConverters
         UserPreferenceEntity::class,
         UsageAnalyticsEntity::class,
     ],
-    version = 6, // VERSION ARTTIRILDI - RESET İÇİN
-    exportSchema = false, // Geliştirme aşamasında false
-    autoMigrations = [],
+    version = 6,
+    exportSchema = true, // Production için true yapıldı
+    autoMigrations = [
+        // Mümkün olan otomatik migration'ları buraya ekle
+    ],
 )
 @TypeConverters(Converters::class)
 abstract class ClipboardDatabase : RoomDatabase() {
     abstract fun clipboardDao(): ClipboardDao
-
     abstract fun tagDao(): TagDao
-
     abstract fun userPreferenceDao(): UserPreferenceDao
-
     abstract fun usageAnalyticsDao(): UsageAnalyticsDao
 
     companion object {
         private const val TAG = "ClipboardDatabase"
+        private const val DATABASE_NAME = "clipbo_database"
 
         @Volatile
         private var INSTANCE: ClipboardDatabase? = null
 
+        // Manuel migration'lar - Production için kritik
+        private val MIGRATION_1_2 = object : Migration(1, 2) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                Log.d(TAG, "Migrating database from version 1 to 2")
+                try {
+                    // Tags tablosu ekleme
+                    database.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS `tags` (
+                            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                            `name` TEXT NOT NULL,
+                            `color` TEXT NOT NULL,
+                            `usage_count` INTEGER NOT NULL DEFAULT 0,
+                            `created_at` INTEGER NOT NULL DEFAULT 0
+                        )
+                        """.trimIndent()
+                    )
+
+                    // Clipboard items tablosuna tags kolonu ekleme
+                    database.execSQL("ALTER TABLE clipboard_items ADD COLUMN tags TEXT NOT NULL DEFAULT ''")
+
+                    Log.d(TAG, "Migration 1->2 completed successfully")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Migration 1->2 failed", e)
+                    throw e
+                }
+            }
+        }
+
+        private val MIGRATION_2_3 = object : Migration(2, 3) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                Log.d(TAG, "Migrating database from version 2 to 3")
+                try {
+                    // Encryption support
+                    database.execSQL("ALTER TABLE clipboard_items ADD COLUMN encrypted_content TEXT")
+                    database.execSQL("ALTER TABLE clipboard_items ADD COLUMN is_encrypted INTEGER NOT NULL DEFAULT 0")
+
+                    // Performance indexes
+                    database.execSQL("CREATE INDEX IF NOT EXISTS index_clipboard_items_timestamp ON clipboard_items(timestamp)")
+                    database.execSQL("CREATE INDEX IF NOT EXISTS index_clipboard_items_type ON clipboard_items(type)")
+
+                    Log.d(TAG, "Migration 2->3 completed successfully")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Migration 2->3 failed", e)
+                    throw e
+                }
+            }
+        }
+
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                Log.d(TAG, "Migrating database from version 3 to 4")
+                try {
+                    // User preferences tablosu
+                    database.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS `user_preferences` (
+                            `key` TEXT PRIMARY KEY NOT NULL,
+                            `value` TEXT NOT NULL,
+                            `type` TEXT NOT NULL,
+                            `updated_at` INTEGER NOT NULL DEFAULT 0
+                        )
+                        """.trimIndent()
+                    )
+
+                    // Sync fields
+                    database.execSQL("ALTER TABLE clipboard_items ADD COLUMN sync_id TEXT")
+                    database.execSQL("ALTER TABLE clipboard_items ADD COLUMN last_modified INTEGER NOT NULL DEFAULT 0")
+
+                    Log.d(TAG, "Migration 3->4 completed successfully")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Migration 3->4 failed", e)
+                    throw e
+                }
+            }
+        }
+
+        private val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                Log.d(TAG, "Migrating database from version 4 to 5")
+                try {
+                    // Analytics tablosu
+                    database.execSQL(
+                        """
+                        CREATE TABLE IF NOT EXISTS `usage_analytics` (
+                            `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                            `event_type` TEXT NOT NULL,
+                            `event_data` TEXT,
+                            `timestamp` INTEGER NOT NULL,
+                            `session_id` TEXT NOT NULL
+                        )
+                        """.trimIndent()
+                    )
+
+                    // Favorites
+                    database.execSQL("ALTER TABLE clipboard_items ADD COLUMN is_favorite INTEGER NOT NULL DEFAULT 0")
+
+                    Log.d(TAG, "Migration 4->5 completed successfully")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Migration 4->5 failed", e)
+                    throw e
+                }
+            }
+        }
+
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(database: SupportSQLiteDatabase) {
+                Log.d(TAG, "Migrating database from version 5 to 6")
+                try {
+                    // Preview kolonu ekleme
+                    database.execSQL("ALTER TABLE clipboard_items ADD COLUMN preview TEXT NOT NULL DEFAULT ''")
+
+                    // Existing data için preview değerlerini güncelle
+                    database.execSQL("UPDATE clipboard_items SET preview = SUBSTR(content, 1, 100) WHERE preview = ''")
+
+                    // Additional indexes for performance
+                    database.execSQL("CREATE INDEX IF NOT EXISTS index_clipboard_items_is_pinned ON clipboard_items(is_pinned)")
+                    database.execSQL("CREATE INDEX IF NOT EXISTS index_clipboard_items_is_secure ON clipboard_items(is_secure)")
+
+                    Log.d(TAG, "Migration 5->6 completed successfully")
+                } catch (e: Exception) {
+                    Log.e(TAG, "Migration 5->6 failed", e)
+                    throw e
+                }
+            }
+        }
+
+        /**
+         * Bu method artık kullanılmayacak - Hilt tarafından yönetilecek
+         * @deprecated Use Hilt injection instead
+         */
+        @Deprecated("Use Hilt injection instead")
         fun getDatabase(context: Context): ClipboardDatabase {
             return INSTANCE ?: synchronized(this) {
-                val instance =
-                    Room.databaseBuilder(
-                        context.applicationContext,
-                        ClipboardDatabase::class.java,
-                        "clipbo_database",
-                    )
-                        .fallbackToDestructiveMigration() // EMERGENCY FIX: Destructive migration
-                        .enableMultiInstanceInvalidation()
-                        .addCallback(
-                            object : RoomDatabase.Callback() {
-                                override fun onCreate(db: androidx.sqlite.db.SupportSQLiteDatabase) {
-                                    super.onCreate(db)
-                                    Log.d(TAG, "Database onCreate called - inserting defaults")
-                                    // Şimdi kesinlikle doğru schema var
-                                    insertDefaultPreferencesEmergency(db)
-                                }
-
-                                override fun onOpen(db: androidx.sqlite.db.SupportSQLiteDatabase) {
-                                    super.onOpen(db)
-                                    Log.d(TAG, "Database onOpen called")
-                                    // Database açıldığında preferences var mı kontrol et
-                                    ensureDefaultPreferences(db)
-                                }
-                            },
-                        )
-                        .build()
+                val instance = buildDatabase(context)
                 INSTANCE = instance
                 instance
             }
         }
 
         /**
-         * EMERGENCY: Basit default preferences ekleme - hiç hata vermesin
+         * Database builder method - Hilt module tarafından kullanılacak
          */
-        private fun insertDefaultPreferencesEmergency(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        internal fun buildDatabase(context: Context): ClipboardDatabase {
+            return Room.databaseBuilder(
+                context.applicationContext,
+                ClipboardDatabase::class.java,
+                DATABASE_NAME
+            )
+                .addMigrations(
+                    MIGRATION_1_2,
+                    MIGRATION_2_3,
+                    MIGRATION_3_4,
+                    MIGRATION_4_5,
+                    MIGRATION_5_6
+                )
+                .enableMultiInstanceInvalidation()
+                .addCallback(object : RoomDatabase.Callback() {
+                    override fun onCreate(db: SupportSQLiteDatabase) {
+                        super.onCreate(db)
+                        Log.d(TAG, "Database created - inserting default preferences")
+                        insertDefaultPreferences(db)
+                    }
+
+                    override fun onOpen(db: SupportSQLiteDatabase) {
+                        super.onOpen(db)
+                        Log.d(TAG, "Database opened")
+                        ensureDefaultPreferences(db)
+                    }
+                })
+                .build()
+        }
+
+        private fun insertDefaultPreferences(db: SupportSQLiteDatabase) {
             try {
-                val defaultPrefs =
-                    mapOf(
-                        "max_history_items" to "100",
-                        "enable_secure_mode" to "true",
-                        "auto_start_service" to "true",
-                        "dark_theme" to "false",
-                        "backup_enabled" to "false",
-                        "analytics_enabled" to "true",
-                    )
+                val defaultPrefs = mapOf(
+                    "max_history_items" to "100",
+                    "enable_secure_mode" to "true",
+                    "auto_start_service" to "true",
+                    "dark_theme" to "false",
+                    "backup_enabled" to "false",
+                    "analytics_enabled" to "true"
+                )
 
                 val timestamp = System.currentTimeMillis()
-
                 defaultPrefs.forEach { (key, value) ->
-                    try {
-                        // Direkt SQL ile ekle - schema kesinlikle doğru
-                        db.execSQL(
-                            "INSERT OR IGNORE INTO user_preferences (key, value, type, updated_at) VALUES (?, ?, ?, ?)",
-                            arrayOf(key, value, "STRING", timestamp),
-                        )
-                        Log.d(TAG, "Emergency: Inserted $key")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "Emergency: Failed to insert $key: ${e.message}")
-                    }
+                    db.execSQL(
+                        "INSERT OR IGNORE INTO user_preferences (key, value, type, updated_at) VALUES (?, ?, ?, ?)",
+                        arrayOf(key, value, "STRING", timestamp)
+                    )
                 }
+                Log.d(TAG, "Default preferences inserted")
             } catch (e: Exception) {
-                Log.e(TAG, "Emergency insertDefaultPreferences failed", e)
+                Log.e(TAG, "Failed to insert default preferences", e)
             }
         }
 
-        /**
-         * Database açıldığında preferences kontrolü
-         */
-        private fun ensureDefaultPreferences(db: androidx.sqlite.db.SupportSQLiteDatabase) {
+        private fun ensureDefaultPreferences(db: SupportSQLiteDatabase) {
             try {
-                // Preferences var mı kontrol et
                 val cursor = db.query("SELECT COUNT(*) FROM user_preferences")
                 val hasData = if (cursor.moveToFirst()) cursor.getInt(0) > 0 else false
                 cursor.close()
 
                 if (!hasData) {
-                    Log.d(TAG, "No preferences found, inserting defaults")
-                    insertDefaultPreferencesEmergency(db)
+                    insertDefaultPreferences(db)
                 }
             } catch (e: Exception) {
                 Log.e(TAG, "Error checking preferences", e)
@@ -124,25 +251,10 @@ abstract class ClipboardDatabase : RoomDatabase() {
             INSTANCE?.close()
             INSTANCE = null
         }
-
-        /**
-         * Manuel database reset (geliştirme amaçlı)
-         */
-        fun resetDatabaseForDevelopment(context: Context) {
-            try {
-                destroyInstance()
-                context.deleteDatabase("clipbo_database")
-                context.deleteDatabase("clipbo_database-shm")
-                context.deleteDatabase("clipbo_database-wal")
-                Log.d(TAG, "Database files deleted for reset")
-            } catch (e: Exception) {
-                Log.e(TAG, "Failed to reset database", e)
-            }
-        }
     }
 }
 
-// Type Converters
+// Type Converters - Değişiklik yok
 class Converters {
     @androidx.room.TypeConverter
     fun fromStringList(value: List<String>): String {
